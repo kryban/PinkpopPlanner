@@ -4,4 +4,4 @@ Een kleine PWA, waarmee de timetable van  pinkop van beoordeling en een kort com
 # Gebruik 
 1. Ga naar timetable van pinkpop
 2. Sla gehele pagina op als HTML
-3. Open PinkpopPlanneren laad opgeslagen HTML
+3. Open PinkpopPlanner en laad opgeslagen HTML
