@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pinkpop 2026 Planner</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
+    body.light { background: #fff; color: #1a1a1a; --bg: #fff; --bg-sec: #f5f5f5; --bg-head: #efefef; --text: #1a1a1a; --text-sec: #666; --border: #e0e0e0; }
+    body.dark  { background: #1a1a1a; color: #f0f0f0; --bg: #1a1a1a; --bg-sec: #252525; --bg-head: #2a2a2a; --text: #f0f0f0; --text-sec: #999; --border: #383838; }
+    h1 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+    button, label.btn { font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s, color 0.15s; font-family: inherit; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button:not(:disabled):active, label.btn:active { background: #e8534a; color: #fff; }
+    input[type=text] { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); width: 140px; font-family: inherit; }
+    input[type=text]:focus { outline: none; border-color: #e8534a; }
+
+    #app { max-width: 750px; margin: 0 auto; padding: 1rem; }
+
+    /* Empty state */
+    #empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 2rem; text-align: center; }
+    #empty .emoji { font-size: 48px; }
+    #last-hint { background: var(--bg-sec); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 20px; max-width: 380px; width: 100%; }
+    #last-hint p { font-size: 13px; color: var(--text-sec); margin-bottom: 8px; }
+    #last-hint strong { font-family: monospace; font-size: 13px; display: block; margin-bottom: 12px; }
+    #load-last { background: #e8534a; color: #fff; border: none; width: 100%; justify-content: center; font-size: 13px; padding: 10px; border-radius: 6px; }
+    #load-last:active { background: #c0392b; }
+
+    /* Save banner */
+    #save-banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fff8e1; border: 1px solid #f5c518; color: #7a6000; font-size: 13px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    #save-banner button { background: #f5c518; color: #7a6000; border: none; }
+    #save-banner button:active { background: #e6b800; }
+
+    /* Header */
+    #header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+    #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    #btn-bewaar.saved { background: #27ae60; color: #fff; }
+
+    /* Tabs */
+    #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; }
+    .tab.active { background: #e8534a; color: #fff; font-weight: 700; border-color: #e8534a; }
+    .tab:active { background: #c0392b; color: #fff; }
+
+    /* Table */
+    #timetable { border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+    #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
+    .col-tijd    { min-width: 85px; flex-shrink: 0; }
+    .col-podium  { min-width: 80px; flex-shrink: 0; }
+    .col-naam    { flex: 1; min-width: 80px; }
+    .col-ster    { min-width: 110px; flex-shrink: 0; }
+    .col-notitie { width: 145px; flex-shrink: 0; }
+    .sortable    { cursor: pointer; user-select: none; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+    .row:last-child { border-bottom: none; }
+    .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); min-width: 85px; }
+    .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; min-width: 80px; text-align: center; }
+    .naam { font-weight: 600; font-size: 13px; flex: 1; min-width: 80px; }
+    .sterren { display: flex; gap: 2px; min-width: 110px; }
+    .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
+    .ster.vol { color: #f5c518; }
+    .ster:hover { color: #f5c518; }
+    footer-note { font-size: 11px; color: var(--text-sec); margin-top: 10px; display: block; }
+  </style>
+</head>
+<body class="light">
+<div id="app">
+
+  <!-- Empty state -->
+  <div id="empty">
+    <div class="emoji">🎪</div>
+    <h1>Pinkpop 2026</h1>
+    <div id="last-hint" style="display:none">
+      <p>Je had eerder dit bestand geladen:</p>
+      <strong id="last-naam"></strong>
+      <label class="btn" id="load-last" style="justify-content:center; width:100%; font-size:13px; padding:10px;">
+        📂 Laad <span id="load-last-naam"></span>
+        <input type="file" id="file-last" accept=".json,.html,.htm" style="display:none" />
+      </label>
+    </div>
+    <p style="font-size:13px; color:var(--text-sec); max-width:360px" id="empty-sub">Laad de opgeslagen Pinkpop programmapagina (.html) of een eerder opgeslagen planner (.json).</p>
+    <label class="btn" style="font-size:13px; padding:10px 20px; justify-content:center;">
+      📂 Kies bestand (.html of .json)
+      <input type="file" id="file-input" accept=".html,.htm,.json" style="display:none" />
+    </label>
+    <div id="fout" style="display:none; padding:10px 16px; border-radius:8px; background:#fde8e8; color:#c0392b; font-size:13px;"></div>
+  </div>
+
+  <!-- Main app (hidden until loaded) -->
+  <div id="main" style="display:none">
+    <!-- Save banner -->
+    <div id="save-banner">
+      <span>💾 Sla op als <strong id="banner-naam"></strong> om je planner te bewaren.</span>
+      <button id="btn-banner-bewaar">💾 Bewaar</button>
+    </div>
+
+    <!-- Header -->
+    <div id="header">
+      <div id="header-meta">
+        <h1>🎪 Pinkpop 2026</h1>
+        <p id="meta-ingeladen"></p>
+        <p id="meta-bijgewerkt"></p>
+      </div>
+      <div id="header-actions">
+        <button id="btn-dark" title="Wissel licht/donker modus">🌙</button>
+        <label class="btn">
+          📂 Nieuw bestand
+          <input type="file" id="file-nieuw" accept=".html,.htm,.json" style="display:none" />
+        </label>
+        <button id="btn-bewaar" disabled>💾 Bewaar</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div id="tabs"></div>
+
+    <!-- Timetable -->
+    <div id="timetable">
+      <div id="timetable-header">
+        <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
+        <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
+        <span class="col-naam">Artiest</span>
+        <span class="col-ster sortable" data-kolom="beoordeling">Beoordeling <span id="icon-beoordeling">↕</span></span>
+        <span class="col-notitie">Notitie</span>
+      </div>
+      <div id="timetable-body"></div>
+    </div>
+    <footer-note>Klik "Bewaar" om je beoordelingen als JSON te kopiëren en op te slaan.</footer-note>
+  </div>
+</div>
+
+<script>
+// ── Parser ───────────────────────────────────────────────────────────────────
+const DAGEN_KEYS = ["vrijdag","zaterdag","zondag"];
+const ROMMEL = ["nl","en","nl  en","tickets","programma","timetable","faq","nieuws","verblijf","vervoer","merchandise","pinkplanner","festivalterrein","over ons","wijnrestaurant"];
+
+function isRommel(s) {
+  const l = s.toLowerCase().trim();
+  return ROMMEL.includes(l) || l.length < 2 || l.startsWith("silent disco") || l.startsWith("feesttent") || l.startsWith("feestplein") || l.startsWith("sun scream") || l.startsWith("b????");
+}
+
+function parseerRegel(tekst) {
+  const dagMatch = tekst.match(/^(vrijdag|zaterdag|zondag)\s+\d+\s+\w+/i);
+  const tijdMatch = tekst.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  const podiumMatch = tekst.match(/\|\s*(South Stage|North Stage|Tent Stage|Stage 4)\s*/i);
+  if (!dagMatch || !tijdMatch || !podiumMatch) return null;
+  const dag = dagMatch[0].trim();
+  const tijd = tijdMatch[1] + " – " + tijdMatch[2];
+  const podium = podiumMatch[1].trim();
+  const naPodium = tekst.slice(tekst.lastIndexOf(podiumMatch[1]) + podiumMatch[1].length).replace(/\s+/g," ").trim();
+  if (!naPodium) return null;
+  const dagSleutel = dag.split(" ")[0].toLowerCase();
+  if (!DAGEN_KEYS.includes(dagSleutel)) return null;
+  return { dag, dagSleutel, tijd, podium, naam: naPodium, beoordeling: null, notitie: "" };
+}
+
+function parseTimetable(html, bestaandeData) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const artiesten = [], gezien = new Set();
+  doc.querySelectorAll("li,article,[class*='artist'],[class*='act'],[class*='performer'],[class*='item'],[class*='card'],a,p,div,span").forEach(el => {
+    const tekst = el.textContent?.replace(/\n\s*\n/g,"\n").trim();
+    if (!tekst || tekst.length > 300) return;
+    const p = parseerRegel(tekst);
+    if (!p) return;
+    const key = p.dagSleutel+"|"+p.tijd+"|"+p.naam;
+    if (gezien.has(key)) return;
+    gezien.add(key);
+    if (!isRommel(p.naam)) artiesten.push(p);
+  });
+  const bestaandMap = {};
+  if (bestaandeData) bestaandeData.dagen.forEach(d => d.artiesten.forEach(a => { bestaandMap[a.dagSleutel+"|"+a.tijd+"|"+a.naam] = a; }));
+  const groepen = {};
+  DAGEN_KEYS.forEach(d => groepen[d] = []);
+  artiesten.forEach(a => {
+    const key = a.dagSleutel+"|"+a.tijd+"|"+a.naam;
+    if (bestaandMap[key]) { a.beoordeling = bestaandMap[key].beoordeling; a.notitie = bestaandMap[key].notitie; }
+    if (groepen[a.dagSleutel]) groepen[a.dagSleutel].push(a);
+  });
+  DAGEN_KEYS.forEach(d => groepen[d].sort((a,b) => a.tijd.localeCompare(b.tijd)));
+  const now = new Date().toISOString();
+  return {
+    festival: "Pinkpop 2026",
+    ingeladenOp: bestaandeData?.ingeladenOp || now,
+    bijgewerktOp: now,
+    dagen: DAGEN_KEYS.map(d => ({ dag: d[0].toUpperCase()+d.slice(1), artiesten: groepen[d] })).filter(d => d.artiesten.length > 0)
+  };
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
+const LS_KEY = "pinkpop_laatste_bestand";
+
+function fmtDatum(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("nl-NL", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
+}
+function ddmmyyyy(d = new Date()) {
+  return String(d.getDate()).padStart(2,"0") + String(d.getMonth()+1).padStart(2,"0") + d.getFullYear();
+}
+function isPinkpopplanner(naam) { return /^Pinkpopplanner-ingeladen-\d{8}/.test(naam); }
+
+// ── State ────────────────────────────────────────────────────────────────────
+let data = null, actieveDag = 0, gewijzigd = false, opslaanNaam = null;
+let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
+
+// ── UI refs ──────────────────────────────────────────────────────────────────
+const $empty     = document.getElementById("empty");
+const $main      = document.getElementById("main");
+const $fout      = document.getElementById("fout");
+const $tabs      = document.getElementById("tabs");
+const $body      = document.getElementById("timetable-body");
+const $banner    = document.getElementById("save-banner");
+const $bannerNaam= document.getElementById("banner-naam");
+const $btnBannerB= document.getElementById("btn-banner-bewaar");
+const $btnBewaar = document.getElementById("btn-bewaar");
+const $btnDark   = document.getElementById("btn-dark");
+const $metaIn    = document.getElementById("meta-ingeladen");
+const $metaBij   = document.getElementById("meta-bijgewerkt");
+const $lastHint  = document.getElementById("last-hint");
+const $lastNaam  = document.getElementById("last-naam");
+const $loadLastNaam = document.getElementById("load-last-naam");
+const $emptySub  = document.getElementById("empty-sub");
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+const laatstBestand = localStorage.getItem(LS_KEY);
+if (laatstBestand) {
+  $lastHint.style.display = "block";
+  $lastNaam.textContent = laatstBestand;
+  $loadLastNaam.textContent = laatstBestand;
+  $emptySub.textContent = "Of laad een ander bestand:";
+}
+
+// ── File handlers ─────────────────────────────────────────────────────────────
+function verwerkBestand(file) {
+  $fout.style.display = "none";
+  const isJson = file.name.endsWith(".json");
+  const isPlanner = isPinkpopplanner(file.name);
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      if (isJson) {
+        const json = JSON.parse(ev.target.result);
+        if (!json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
+        laadData(json, isPlanner ? null : "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json");
+        localStorage.setItem(LS_KEY, file.name);
+      } else {
+        const json = parseTimetable(ev.target.result, data);
+        if (!json.dagen.length) throw new Error("Geen artiesten gevonden — is dit de juiste pagina?");
+        const naam = "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json";
+        laadData(json, naam);
+        localStorage.setItem(LS_KEY, naam);
+      }
+    } catch(e) {
+      $fout.style.display = "block";
+      $fout.textContent = e.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+["file-input","file-last","file-nieuw"].forEach(id => {
+  document.getElementById(id).addEventListener("change", e => { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
+});
+
+// ── Laad data ─────────────────────────────────────────────────────────────────
+function laadData(json, nieuwOpslaanNaam) {
+  data = json;
+  actieveDag = 0;
+  gewijzigd = false;
+  opslaanNaam = nieuwOpslaanNaam;
+  $empty.style.display = "none";
+  $main.style.display = "block";
+  renderHeader();
+  renderBanner();
+  renderTabs();
+  renderTimetable();
+  updateBewaarKnop();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderHeader() {
+  $metaIn.textContent  = "Festival programma ingeladen op " + fmtDatum(data.ingeladenOp);
+  $metaBij.textContent = "Laatst bijgewerkt op " + fmtDatum(data.bijgewerktOp);
+}
+
+function renderBanner() {
+  if (opslaanNaam) {
+    $banner.style.display = "flex";
+    $bannerNaam.textContent = opslaanNaam;
+  } else {
+    $banner.style.display = "none";
+  }
+}
+
+function renderTabs() {
+  $tabs.innerHTML = "";
+  data.dagen.forEach((d, i) => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (i === actieveDag ? " active" : "");
+    btn.innerHTML = d.dag + ' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
+    btn.addEventListener("click", () => { actieveDag = i; renderTabs(); renderTimetable(); });
+    $tabs.appendChild(btn);
+  });
+}
+
+function gesorteerdeArtiesten() {
+  const arr = [...data.dagen[actieveDag].artiesten];
+  return arr.sort((a, b) => {
+    let va, vb;
+    if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
+    else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
+    else                             { va = a.beoordeling ?? -1; vb = b.beoordeling ?? -1; }
+    if (va < vb) return sortRichting === "asc" ? -1 : 1;
+    if (va > vb) return sortRichting === "asc" ?  1 : -1;
+    return 0;
+  });
+}
+
+function renderTimetable() {
+  $body.innerHTML = "";
+  ["tijd","podium","beoordeling"].forEach(k => {
+    const ic = document.getElementById("icon-"+k);
+    ic.textContent = sortKolom === k ? (sortRichting === "asc" ? "↑" : "↓") : "↕";
+    ic.style.opacity = sortKolom === k ? "1" : "0.3";
+  });
+
+  gesorteerdeArtiesten().forEach(artiest => {
+    const dag = data.dagen[actieveDag];
+    const artIdx = dag.artiesten.indexOf(artiest);
+    const kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    // Tijd
+    const tijd = document.createElement("span");
+    tijd.className = "tijd col-tijd";
+    tijd.textContent = artiest.tijd;
+
+    // Podium badge
+    const badge = document.createElement("span");
+    badge.className = "podium-badge col-podium";
+    badge.style.background = kleur + "33";
+    badge.style.color = kleur;
+    badge.textContent = artiest.podium;
+
+    // Naam
+    const naam = document.createElement("span");
+    naam.className = "naam col-naam";
+    naam.textContent = artiest.naam;
+
+    // Sterren
+    const sterren = document.createElement("div");
+    sterren.className = "sterren col-ster";
+    for (let s = 1; s <= 5; s++) {
+      const ster = document.createElement("span");
+      ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
+      ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
+      ster.addEventListener("click", () => {
+        const nieuw = artiest.beoordeling === s ? null : s;
+        data.dagen[actieveDag].artiesten[artIdx].beoordeling = nieuw;
+        data.bijgewerktOp = new Date().toISOString();
+        gewijzigd = true;
+        renderHeader();
+        renderTimetable();
+        updateBewaarKnop();
+      });
+      sterren.appendChild(ster);
+    }
+
+    // Notitie
+    const notitie = document.createElement("input");
+    notitie.type = "text";
+    notitie.className = "col-notitie";
+    notitie.maxLength = 20;
+    notitie.placeholder = "Notitie (max 20)";
+    notitie.value = artiest.notitie;
+    notitie.addEventListener("input", e => {
+      data.dagen[actieveDag].artiesten[artIdx].notitie = e.target.value;
+      data.bijgewerktOp = new Date().toISOString();
+      gewijzigd = true;
+      renderHeader();
+      updateBewaarKnop();
+    });
+
+    row.append(tijd, badge, naam, sterren, notitie);
+    $body.appendChild(row);
+  });
+}
+
+function updateBewaarKnop() {
+  $btnBewaar.disabled = !gewijzigd;
+  $btnBewaar.textContent = "💾 Bewaar";
+  $btnBewaar.classList.remove("saved");
+}
+
+function bewaar() {
+  const json = JSON.stringify(data, null, 2);
+  try { navigator.clipboard.writeText(json); } catch(e) {}
+  gewijzigd = false;
+  $btnBewaar.disabled = true;
+  $btnBewaar.textContent = "✓ Bewaard!";
+  $btnBewaar.classList.add("saved");
+  setTimeout(() => { $btnBewaar.textContent = "💾 Bewaar"; $btnBewaar.classList.remove("saved"); }, 2000);
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+$btnBewaar.addEventListener("click", bewaar);
+
+$btnBannerB.addEventListener("click", () => {
+  try { navigator.clipboard.writeText(JSON.stringify(data, null, 2)); } catch(e) {}
+  opslaanNaam = null;
+  renderBanner();
+});
+
+$btnDark.addEventListener("click", () => {
+  darkMode = !darkMode;
+  document.body.className = darkMode ? "dark" : "light";
+  $btnDark.textContent = darkMode ? "☀️" : "🌙";
+});
+
+document.querySelectorAll(".sortable").forEach(el => {
+  el.addEventListener("click", () => {
+    const k = el.dataset.kolom;
+    if (sortKolom === k) sortRichting = sortRichting === "asc" ? "desc" : "asc";
+    else { sortKolom = k; sortRichting = "asc"; }
+    renderTimetable();
+  });
+});
+</script>
+</body>
+</html>
