@@ -20,10 +20,7 @@
     button:not(:disabled):active, label.btn:active { background: #e8534a; color: #fff; }
     input[type=text] { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); width: 140px; font-family: inherit; }
     input[type=text]:focus { outline: none; border-color: #e8534a; }
-
     #app { max-width: 750px; margin: 0 auto; padding: 1rem; }
-
-    /* Empty state */
     #empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 2rem; text-align: center; }
     #empty .emoji { font-size: 48px; }
     #last-hint { background: var(--bg-sec); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 20px; max-width: 380px; width: 100%; }
@@ -31,25 +28,17 @@
     #last-hint strong { font-family: monospace; font-size: 13px; display: block; margin-bottom: 12px; }
     #load-last { background: #e8534a; color: #fff; border: none; width: 100%; justify-content: center; font-size: 13px; padding: 10px; border-radius: 6px; }
     #load-last:active { background: #c0392b; }
-
-    /* Save banner */
     #save-banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fff8e1; border: 1px solid #f5c518; color: #7a6000; font-size: 13px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     #save-banner button { background: #f5c518; color: #7a6000; border: none; }
-    #save-banner button:active { background: #e6b800; }
-
-    /* Header */
+    #save-banner button:active { background: #e6b800; color: #7a6000; }
     #header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
     #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
     #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    #btn-bewaar.saved { background: #27ae60; color: #fff; }
-
-    /* Tabs */
+    #btn-export.saved { background: #27ae60; color: #fff; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
     .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; }
     .tab.active { background: #e8534a; color: #fff; font-weight: 700; border-color: #e8534a; }
     .tab:active { background: #c0392b; color: #fff; }
-
-    /* Table */
     #timetable { border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
     #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
     .col-tijd    { min-width: 85px; flex-shrink: 0; }
@@ -82,7 +71,7 @@
       <strong id="last-naam"></strong>
       <label class="btn" id="load-last" style="justify-content:center; width:100%; font-size:13px; padding:10px;">
         📂 Laad <span id="load-last-naam"></span>
-                  <input type="file" id="file-last" accept=".json,.html,.htm,.mht,.mhtml" style="display:none" />
+        <input type="file" id="file-last" accept=".json,.html,.htm,.mht,.mhtml" style="display:none" />
       </label>
     </div>
     <p style="font-size:13px; color:var(--text-sec); max-width:360px" id="empty-sub">Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).</p>
@@ -93,11 +82,11 @@
     <div id="fout" style="display:none; padding:10px 16px; border-radius:8px; background:#fde8e8; color:#c0392b; font-size:13px;"></div>
   </div>
 
-  <!-- Main app (hidden until loaded) -->
+  <!-- Main app -->
   <div id="main" style="display:none">
     <!-- Save banner -->
     <div id="save-banner">
-      <span>💾 Sla op als <strong id="banner-naam"></strong> om je planner te bewaren.</span>
+      <span>💾 Nieuw programma geladen — druk op Bewaar om op te slaan.</span>
       <button id="btn-banner-bewaar">💾 Bewaar</button>
     </div>
 
@@ -114,7 +103,7 @@
           📂 Nieuw bestand
           <input type="file" id="file-nieuw" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
         </label>
-        <button id="btn-bewaar" disabled>💾 Bewaar</button>
+        <button id="btn-export" title="Exporteer backup als JSON bestand">📤 Exporteer</button>
       </div>
     </div>
 
@@ -132,8 +121,8 @@
       </div>
       <div id="timetable-body"></div>
     </div>
-    <footer-note>Klik "Bewaar" om je beoordelingen als JSON te kopiëren en op te slaan.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.8.1</div>
+    <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.0</div>
   </div>
 </div>
 
@@ -163,33 +152,23 @@ function parseerRegel(tekst) {
 }
 
 function decodeerMHTML(inhoud) {
-  // Zoek het HTML gedeelte in het MHTML bestand
   const delen = inhoud.split(/^--/m);
   for (const deel of delen) {
-    const isHtml = /Content-Type:\s*text\/html/i.test(deel);
-    if (!isHtml) continue;
-    // Haal de body op (na de lege regel die headers scheidt van inhoud)
+    if (!/Content-Type:\s*text\/html/i.test(deel)) continue;
     const body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
     const encoding = (deel.match(/Content-Transfer-Encoding:\s*(\S+)/i) || [])[1]?.toLowerCase();
-    if (encoding === "quoted-printable") {
-      return decodeQuotedPrintable(body);
-    } else if (encoding === "base64") {
-      return atob(body.replace(/\s+/g, ""));
-    }
+    if (encoding === "quoted-printable") return decodeQuotedPrintable(body);
+    if (encoding === "base64") return atob(body.replace(/\s+/g, ""));
     return body;
   }
-  // Geen MIME structuur gevonden, gewoon teruggeven
   return inhoud;
 }
 
 function decodeQuotedPrintable(str) {
-  return str
-    .replace(/=\r?\n/g, "")           // soft line breaks verwijderen
-    .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  return str.replace(/=\r?\n/g, "").replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
 function parseTimetable(inhoud, bestaandeData) {
-  // MHTML detecteren op basis van MIME header
   const isMHTML = /^MIME-Version:/im.test(inhoud) || /^Content-Type:\s*multipart/im.test(inhoud);
   const html = isMHTML ? decodeerMHTML(inhoud) : inhoud;
   const parser = new DOMParser();
@@ -226,7 +205,8 @@ function parseTimetable(inhoud, bestaandeData) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
-const LS_KEY = "pinkpop_laatste_bestand";
+const LS_DATA_KEY   = "pinkpop_data";
+const LS_DARK_KEY   = "pinkpop_dark";
 
 function fmtDatum(iso) {
   if (!iso) return "—";
@@ -237,42 +217,62 @@ function ddmmyyyy(d = new Date()) {
 }
 function isPinkpopplanner(naam) { return /^Pinkpopplanner-ingeladen-\d{8}/.test(naam); }
 
+function slaOpInStorage() {
+  try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) { console.warn("localStorage vol?", e); }
+}
+
+function downloadJson(naam) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = naam || "pinkpop-backup.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
-let data = null, actieveDag = 0, gewijzigd = false, opslaanNaam = null;
+let data = null, actieveDag = 0, opslaanNaam = null;
 let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
 
 // ── UI refs ──────────────────────────────────────────────────────────────────
-const $empty     = document.getElementById("empty");
-const $main      = document.getElementById("main");
-const $fout      = document.getElementById("fout");
-const $tabs      = document.getElementById("tabs");
-const $body      = document.getElementById("timetable-body");
-const $banner    = document.getElementById("save-banner");
-const $bannerNaam= document.getElementById("banner-naam");
-const $btnBannerB= document.getElementById("btn-banner-bewaar");
-const $btnBewaar = document.getElementById("btn-bewaar");
-const $btnDark   = document.getElementById("btn-dark");
-const $metaIn    = document.getElementById("meta-ingeladen");
-const $metaBij   = document.getElementById("meta-bijgewerkt");
-const $lastHint  = document.getElementById("last-hint");
-const $lastNaam  = document.getElementById("last-naam");
+const $empty      = document.getElementById("empty");
+const $main       = document.getElementById("main");
+const $fout       = document.getElementById("fout");
+const $tabs       = document.getElementById("tabs");
+const $body       = document.getElementById("timetable-body");
+const $banner     = document.getElementById("save-banner");
+const $btnBannerB = document.getElementById("btn-banner-bewaar");
+const $btnExport  = document.getElementById("btn-export");
+const $btnDark    = document.getElementById("btn-dark");
+const $metaIn     = document.getElementById("meta-ingeladen");
+const $metaBij    = document.getElementById("meta-bijgewerkt");
+const $lastHint   = document.getElementById("last-hint");
+const $lastNaam   = document.getElementById("last-naam");
 const $loadLastNaam = document.getElementById("load-last-naam");
-const $emptySub  = document.getElementById("empty-sub");
+const $emptySub   = document.getElementById("empty-sub");
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-const laatstBestand = localStorage.getItem(LS_KEY);
-if (laatstBestand) {
-  $lastHint.style.display = "block";
-  $lastNaam.textContent = laatstBestand;
-  $loadLastNaam.textContent = laatstBestand;
-  $emptySub.textContent = "Of laad een ander bestand:";
+// ── Init: herstel uit localStorage ───────────────────────────────────────────
+const opgeslagen = localStorage.getItem(LS_DATA_KEY);
+darkMode = localStorage.getItem(LS_DARK_KEY) === "true";
+if (darkMode) { document.body.className = "dark"; $btnDark && ($btnDark.textContent = "☀️"); }
+
+if (opgeslagen) {
+  try {
+    const json = JSON.parse(opgeslagen);
+    if (json.dagen) {
+      laadData(json, null); // null = geen banner, data was al opgeslagen
+    }
+  } catch(e) {}
+} else {
+  // Geen opgeslagen data — toon hint als er een bekende bestandsnaam is
+  const laatstBestand = null; // niet meer nodig, data zit in localStorage
+  $emptySub.innerHTML = 'Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).';
 }
 
 // ── File handlers ─────────────────────────────────────────────────────────────
 function verwerkBestand(file) {
   $fout.style.display = "none";
   const isJson = file.name.endsWith(".json");
-  const isMHTML = file.name.endsWith(".mht") || file.name.endsWith(".mhtml");
   const isPlanner = isPinkpopplanner(file.name);
   const reader = new FileReader();
   reader.onload = ev => {
@@ -280,40 +280,36 @@ function verwerkBestand(file) {
       if (isJson) {
         const json = JSON.parse(ev.target.result);
         if (!json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
-        laadData(json, isPlanner ? null : "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json");
-        localStorage.setItem(LS_KEY, file.name);
+        laadData(json, null); // geïmporteerde backup — geen banner nodig
+        slaOpInStorage();
       } else {
         const json = parseTimetable(ev.target.result, data);
         if (!json.dagen.length) throw new Error("Geen artiesten gevonden — is dit de juiste pagina? Ondersteunde formaten: .html, .mht, .mhtml");
-        const naam = "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json";
-        laadData(json, naam);
-        localStorage.setItem(LS_KEY, naam);
+        laadData(json, true); // true = toon banner
+        slaOpInStorage();
       }
-    } catch(e) {
-      $fout.style.display = "block";
-      $fout.textContent = e.message;
-    }
+    } catch(e) { $fout.style.display = "block"; $fout.textContent = e.message; }
   };
+  reader.onerror = () => { $fout.style.display = "block"; $fout.textContent = "Fout bij inlezen."; };
   reader.readAsText(file);
 }
 
 ["file-input","file-last","file-nieuw"].forEach(id => {
-  document.getElementById(id).addEventListener("change", e => { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("change", e => { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
 });
 
 // ── Laad data ─────────────────────────────────────────────────────────────────
-function laadData(json, nieuwOpslaanNaam) {
+function laadData(json, toonBanner) {
   data = json;
   actieveDag = 0;
-  gewijzigd = false;
-  opslaanNaam = nieuwOpslaanNaam;
   $empty.style.display = "none";
   $main.style.display = "block";
+  opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
   renderHeader();
   renderBanner();
   renderTabs();
   renderTimetable();
-  updateBewaarKnop();
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -323,12 +319,7 @@ function renderHeader() {
 }
 
 function renderBanner() {
-  if (opslaanNaam) {
-    $banner.style.display = "flex";
-    $bannerNaam.textContent = opslaanNaam;
-  } else {
-    $banner.style.display = "none";
-  }
+  $banner.style.display = opslaanNaam ? "flex" : "none";
 }
 
 function renderTabs() {
@@ -343,8 +334,7 @@ function renderTabs() {
 }
 
 function gesorteerdeArtiesten() {
-  const arr = [...data.dagen[actieveDag].artiesten];
-  return arr.sort((a, b) => {
+  return [...data.dagen[actieveDag].artiesten].sort((a, b) => {
     let va, vb;
     if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
     else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
@@ -362,111 +352,63 @@ function renderTimetable() {
     ic.textContent = sortKolom === k ? (sortRichting === "asc" ? "↑" : "↓") : "↕";
     ic.style.opacity = sortKolom === k ? "1" : "0.3";
   });
-
   gesorteerdeArtiesten().forEach(artiest => {
     const dag = data.dagen[actieveDag];
     const artIdx = dag.artiesten.indexOf(artiest);
     const kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
-
-    const row = document.createElement("div");
-    row.className = "row";
-
-    // Tijd
-    const tijd = document.createElement("span");
-    tijd.className = "tijd col-tijd";
-    tijd.textContent = artiest.tijd;
-
-    // Podium badge
-    const badge = document.createElement("span");
-    badge.className = "podium-badge col-podium";
-    badge.style.background = kleur + "33";
-    badge.style.color = kleur;
-    badge.textContent = artiest.podium;
-
-    // Naam
-    const naam = document.createElement("span");
-    naam.className = "naam col-naam";
-    naam.textContent = artiest.naam;
-
-    // Sterren
-    const sterren = document.createElement("div");
-    sterren.className = "sterren col-ster";
+    const row = document.createElement("div"); row.className = "row";
+    const tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
+    const badge = document.createElement("span"); badge.className = "podium-badge col-podium";
+    badge.style.background = kleur + "33"; badge.style.color = kleur; badge.textContent = artiest.podium;
+    const naam = document.createElement("span"); naam.className = "naam col-naam"; naam.textContent = artiest.naam;
+    const sterren = document.createElement("div"); sterren.className = "sterren col-ster";
     for (let s = 1; s <= 5; s++) {
       const ster = document.createElement("span");
       ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
       ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
       ster.addEventListener("click", () => {
-        const nieuw = artiest.beoordeling === s ? null : s;
-        data.dagen[actieveDag].artiesten[artIdx].beoordeling = nieuw;
+        data.dagen[actieveDag].artiesten[artIdx].beoordeling = artiest.beoordeling === s ? null : s;
         data.bijgewerktOp = new Date().toISOString();
-        gewijzigd = true;
+        slaOpInStorage();
         renderHeader();
         renderTimetable();
-        updateBewaarKnop();
       });
       sterren.appendChild(ster);
     }
-
-    // Notitie
     const notitie = document.createElement("input");
-    notitie.type = "text";
-    notitie.className = "col-notitie";
-    notitie.maxLength = 20;
-    notitie.placeholder = "Notitie (max 20)";
-    notitie.value = artiest.notitie;
+    notitie.type = "text"; notitie.className = "col-notitie"; notitie.maxLength = 20;
+    notitie.placeholder = "Notitie (max 20)"; notitie.value = artiest.notitie;
     notitie.addEventListener("input", e => {
       data.dagen[actieveDag].artiesten[artIdx].notitie = e.target.value;
       data.bijgewerktOp = new Date().toISOString();
-      gewijzigd = true;
+      slaOpInStorage();
       renderHeader();
-      updateBewaarKnop();
     });
-
     row.append(tijd, badge, naam, sterren, notitie);
     $body.appendChild(row);
   });
 }
 
-function updateBewaarKnop() {
-  $btnBewaar.disabled = !gewijzigd;
-  $btnBewaar.textContent = "💾 Bewaar";
-  $btnBewaar.classList.remove("saved");
-}
-
-function downloadJson(naam) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = naam || "pinkpop-planner.json";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
-}
-
-function bewaar() {
-  const naam = localStorage.getItem(LS_KEY) || "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json";
-  downloadJson(naam);
-  gewijzigd = false;
-  $btnBewaar.disabled = true;
-  $btnBewaar.textContent = "✓ Bewaard!";
-  $btnBewaar.classList.add("saved");
-  setTimeout(() => { $btnBewaar.textContent = "💾 Bewaar"; $btnBewaar.classList.remove("saved"); }, 2000);
-}
-
-// ── Event listeners ───────────────────────────────────────────────────────────
-$btnBewaar.addEventListener("click", bewaar);
-
+// ── Knoppen ───────────────────────────────────────────────────────────────────
 $btnBannerB.addEventListener("click", () => {
-  downloadJson(opslaanNaam);
+  slaOpInStorage();
   opslaanNaam = null;
   renderBanner();
+});
+
+$btnExport.addEventListener("click", () => {
+  const naam = "Pinkpopplanner-backup-" + ddmmyyyy() + ".json";
+  downloadJson(naam);
+  $btnExport.textContent = "✓ Geëxporteerd!";
+  $btnExport.classList.add("saved");
+  setTimeout(() => { $btnExport.textContent = "📤 Exporteer"; $btnExport.classList.remove("saved"); }, 2000);
 });
 
 $btnDark.addEventListener("click", () => {
   darkMode = !darkMode;
   document.body.className = darkMode ? "dark" : "light";
   $btnDark.textContent = darkMode ? "☀️" : "🌙";
+  localStorage.setItem(LS_DARK_KEY, darkMode);
 });
 
 document.querySelectorAll(".sortable").forEach(el => {
