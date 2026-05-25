@@ -1,0 +1,16 @@
+{
+  "name": "Pinkpop 2026 Planner",
+  "short_name": "Pinkpop",
+  "description": "Pinkpop 2026 timetable planner met mogelijkheid tot het geven van eigen beoordelingen",
+  "start_url": "/PinkpopPlanner/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e8534a",
+  "icons": [
+    {
+      "src": "https://www.pinkpop.nl/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
