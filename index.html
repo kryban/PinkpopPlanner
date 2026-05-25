@@ -141,7 +141,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.5</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.6</div>
   </div>
 </div>
 
@@ -249,9 +249,7 @@ function downloadJson(naam) {
   filterMin = parseInt(btn.dataset.min);
   document.querySelectorAll(".filter-ster").forEach(b => b.classList.toggle("active", b === btn));
   renderTimetable();
-});
-
-document.createElement("a");
+});createElement("a");
   a.href = url; a.download = naam || "pinkpop-backup.json";
   document.body.appendChild(a); a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
