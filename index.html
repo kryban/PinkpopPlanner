@@ -133,7 +133,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Klik "Bewaar" om je beoordelingen als JSON te kopiëren en op te slaan.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.8.0</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.8.1</div>
   </div>
 </div>
 
@@ -433,9 +433,20 @@ function updateBewaarKnop() {
   $btnBewaar.classList.remove("saved");
 }
 
+function downloadJson(naam) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = naam || "pinkpop-planner.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+}
+
 function bewaar() {
-  const json = JSON.stringify(data, null, 2);
-  try { navigator.clipboard.writeText(json); } catch(e) {}
+  const naam = localStorage.getItem(LS_KEY) || "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json";
+  downloadJson(naam);
   gewijzigd = false;
   $btnBewaar.disabled = true;
   $btnBewaar.textContent = "✓ Bewaard!";
@@ -447,7 +458,7 @@ function bewaar() {
 $btnBewaar.addEventListener("click", bewaar);
 
 $btnBannerB.addEventListener("click", () => {
-  try { navigator.clipboard.writeText(JSON.stringify(data, null, 2)); } catch(e) {}
+  downloadJson(opslaanNaam);
   opslaanNaam = null;
   renderBanner();
 });
