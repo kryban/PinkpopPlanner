@@ -60,6 +60,8 @@
     .notitie-tekst:hover { border-bottom-color: var(--border); }
     .notitie-tekst.leeg { color: var(--border); font-style: italic; }
     .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid #e8534a; background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
+    .filter-ster { font-size:12px; padding:4px 10px; border-radius:6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor:pointer; }
+    .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
     footer-note { font-size: 11px; color: var(--text-sec); margin-top: 10px; display: block; }
   </style>
 </head>
@@ -111,6 +113,19 @@
       </div>
     </div>
 
+    <!-- Filter -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+      <span style="font-size:12px; color:var(--text-sec);">Toon minimaal</span>
+      <div id="filter-sterren" style="display:flex; gap:4px;">
+        <button class="filter-ster active" data-min="0" style="font-size:12px; padding:4px 10px; border-radius:6px;">Alle</button>
+        <button class="filter-ster" data-min="1" style="font-size:12px; padding:4px 10px; border-radius:6px;">★</button>
+        <button class="filter-ster" data-min="2" style="font-size:12px; padding:4px 10px; border-radius:6px;">★★</button>
+        <button class="filter-ster" data-min="3" style="font-size:12px; padding:4px 10px; border-radius:6px;">★★★</button>
+        <button class="filter-ster" data-min="4" style="font-size:12px; padding:4px 10px; border-radius:6px;">★★★★</button>
+        <button class="filter-ster" data-min="5" style="font-size:12px; padding:4px 10px; border-radius:6px;">★★★★★</button>
+      </div>
+    </div>
+
     <!-- Tabs -->
     <div id="tabs"></div>
 
@@ -126,7 +141,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.4</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.5</div>
   </div>
 </div>
 
@@ -228,14 +243,22 @@ function slaOpInStorage() {
 function downloadJson(naam) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.getElementById("filter-sterren").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-ster");
+  if (!btn) return;
+  filterMin = parseInt(btn.dataset.min);
+  document.querySelectorAll(".filter-ster").forEach(b => b.classList.toggle("active", b === btn));
+  renderTimetable();
+});
+
+document.createElement("a");
   a.href = url; a.download = naam || "pinkpop-backup.json";
   document.body.appendChild(a); a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
-let data = null, actieveDag = 0, opslaanNaam = null;
+let data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0;
 let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
 
 // ── UI refs ──────────────────────────────────────────────────────────────────
@@ -338,7 +361,9 @@ function renderTabs() {
 }
 
 function gesorteerdeArtiesten() {
-  return [...data.dagen[actieveDag].artiesten].sort((a, b) => {
+  return [...data.dagen[actieveDag].artiesten]
+    .filter(a => filterMin === 0 || (a.beoordeling ?? 0) >= filterMin)
+    .sort((a, b) => {
     let va, vb;
     if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
     else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
