@@ -126,7 +126,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.3</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.4</div>
   </div>
 </div>
 
@@ -396,7 +396,7 @@ function renderTimetable() {
 
     const notitieInput = document.createElement("input");
     notitieInput.type = "text"; notitieInput.className = "notitie-input";
-    notitieInput.maxLength = 20; notitieInput.value = artiest.notitie;
+    notitieInput.maxLength = 35; notitieInput.value = artiest.notitie;
     notitieInput.style.display = "none";
 
     notitieSpan.addEventListener("click", () => {
