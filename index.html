@@ -82,13 +82,13 @@
       <strong id="last-naam"></strong>
       <label class="btn" id="load-last" style="justify-content:center; width:100%; font-size:13px; padding:10px;">
         📂 Laad <span id="load-last-naam"></span>
-        <input type="file" id="file-last" accept=".json,.html,.htm" style="display:none" />
+                  <input type="file" id="file-last" accept=".json,.html,.htm,.mht,.mhtml" style="display:none" />
       </label>
     </div>
-    <p style="font-size:13px; color:var(--text-sec); max-width:360px" id="empty-sub">Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html) of een eerder opgeslagen planner (.json).</p>
+    <p style="font-size:13px; color:var(--text-sec); max-width:360px" id="empty-sub">Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).</p>
     <label class="btn" style="font-size:13px; padding:10px 20px; justify-content:center;">
-      📂 Kies bestand (.html of .json)
-      <input type="file" id="file-input" accept=".html,.htm,.json" style="display:none" />
+      📂 Kies bestand (.html / .mht / .json)
+      <input type="file" id="file-input" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
     </label>
     <div id="fout" style="display:none; padding:10px 16px; border-radius:8px; background:#fde8e8; color:#c0392b; font-size:13px;"></div>
   </div>
@@ -112,7 +112,7 @@
         <button id="btn-dark" title="Wissel licht/donker modus">🌙</button>
         <label class="btn">
           📂 Nieuw bestand
-          <input type="file" id="file-nieuw" accept=".html,.htm,.json" style="display:none" />
+          <input type="file" id="file-nieuw" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
         </label>
         <button id="btn-bewaar" disabled>💾 Bewaar</button>
       </div>
@@ -133,6 +133,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Klik "Bewaar" om je beoordelingen als JSON te kopiëren en op te slaan.</footer-note>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.8.0</div>
   </div>
 </div>
 
@@ -161,7 +162,36 @@ function parseerRegel(tekst) {
   return { dag, dagSleutel, tijd, podium, naam: naPodium, beoordeling: null, notitie: "" };
 }
 
-function parseTimetable(html, bestaandeData) {
+function decodeerMHTML(inhoud) {
+  // Zoek het HTML gedeelte in het MHTML bestand
+  const delen = inhoud.split(/^--/m);
+  for (const deel of delen) {
+    const isHtml = /Content-Type:\s*text\/html/i.test(deel);
+    if (!isHtml) continue;
+    // Haal de body op (na de lege regel die headers scheidt van inhoud)
+    const body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
+    const encoding = (deel.match(/Content-Transfer-Encoding:\s*(\S+)/i) || [])[1]?.toLowerCase();
+    if (encoding === "quoted-printable") {
+      return decodeQuotedPrintable(body);
+    } else if (encoding === "base64") {
+      return atob(body.replace(/\s+/g, ""));
+    }
+    return body;
+  }
+  // Geen MIME structuur gevonden, gewoon teruggeven
+  return inhoud;
+}
+
+function decodeQuotedPrintable(str) {
+  return str
+    .replace(/=\r?\n/g, "")           // soft line breaks verwijderen
+    .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+function parseTimetable(inhoud, bestaandeData) {
+  // MHTML detecteren op basis van MIME header
+  const isMHTML = /^MIME-Version:/im.test(inhoud) || /^Content-Type:\s*multipart/im.test(inhoud);
+  const html = isMHTML ? decodeerMHTML(inhoud) : inhoud;
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const artiesten = [], gezien = new Set();
@@ -242,6 +272,7 @@ if (laatstBestand) {
 function verwerkBestand(file) {
   $fout.style.display = "none";
   const isJson = file.name.endsWith(".json");
+  const isMHTML = file.name.endsWith(".mht") || file.name.endsWith(".mhtml");
   const isPlanner = isPinkpopplanner(file.name);
   const reader = new FileReader();
   reader.onload = ev => {
@@ -253,7 +284,7 @@ function verwerkBestand(file) {
         localStorage.setItem(LS_KEY, file.name);
       } else {
         const json = parseTimetable(ev.target.result, data);
-        if (!json.dagen.length) throw new Error("Geen artiesten gevonden — is dit de juiste pagina?");
+        if (!json.dagen.length) throw new Error("Geen artiesten gevonden — is dit de juiste pagina? Ondersteunde formaten: .html, .mht, .mhtml");
         const naam = "Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json";
         laadData(json, naam);
         localStorage.setItem(LS_KEY, naam);
