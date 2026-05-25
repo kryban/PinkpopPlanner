@@ -126,7 +126,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.1</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.0</div>
   </div>
 </div>
 
@@ -364,7 +364,17 @@ function renderTimetable() {
     const tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
     const badge = document.createElement("span"); badge.className = "podium-badge col-podium";
     badge.style.background = kleur + "33"; badge.style.color = kleur; badge.textContent = artiest.podium;
-    const naam = document.createElement("span"); naam.className = "naam col-naam"; naam.textContent = artiest.naam;
+    const naam = document.createElement("a");
+    naam.className = "naam col-naam";
+    naam.textContent = artiest.naam;
+    naam.href = "https://open.spotify.com/search/" + encodeURIComponent(artiest.naam) + "/artists";
+    naam.target = "_blank";
+    naam.rel = "noopener noreferrer";
+    naam.style.color = "var(--text)";
+    naam.style.textDecoration = "none";
+    naam.style.borderBottom = "1px dotted #1db954";
+    naam.addEventListener("mouseenter", () => naam.style.color = "#1db954");
+    naam.addEventListener("mouseleave", () => naam.style.color = "var(--text)");
     const sterren = document.createElement("div"); sterren.className = "sterren col-ster";
     for (let s = 1; s <= 5; s++) {
       const ster = document.createElement("span");
