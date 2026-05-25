@@ -45,7 +45,7 @@
     .col-podium  { min-width: 80px; flex-shrink: 0; }
     .col-naam    { flex: 1; min-width: 80px; }
     .col-ster    { min-width: 110px; flex-shrink: 0; }
-    .col-notitie { width: 145px; flex-shrink: 0; }
+    .col-notitie { flex: 1; min-width: 80px; }
     .sortable    { cursor: pointer; user-select: none; }
     .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
     .row:last-child { border-bottom: none; }
@@ -56,6 +56,10 @@
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .ster.vol { color: #f5c518; }
     .ster:hover { color: #f5c518; }
+    .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; flex: 1; padding: 4px 0; border-bottom: 1px dashed transparent; }
+    .notitie-tekst:hover { border-bottom-color: var(--border); }
+    .notitie-tekst.leeg { color: var(--border); font-style: italic; }
+    .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid #e8534a; background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
     footer-note { font-size: 11px; color: var(--text-sec); margin-top: 10px; display: block; }
   </style>
 </head>
@@ -115,14 +119,14 @@
       <div id="timetable-header">
         <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
         <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
-        <span class="col-naam">Artiest</span>
+        <span class="col-naam"></span>
         <span class="col-ster sortable" data-kolom="beoordeling">Beoordeling <span id="icon-beoordeling">↕</span></span>
-        <span class="col-notitie">Notitie</span>
+        <span class="col-notitie"></span>
       </div>
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.0</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.1</div>
   </div>
 </div>
 
@@ -375,16 +379,35 @@ function renderTimetable() {
       });
       sterren.appendChild(ster);
     }
-    const notitie = document.createElement("input");
-    notitie.type = "text"; notitie.className = "col-notitie"; notitie.maxLength = 20;
-    notitie.placeholder = "Notitie (max 20)"; notitie.value = artiest.notitie;
-    notitie.addEventListener("input", e => {
-      data.dagen[actieveDag].artiesten[artIdx].notitie = e.target.value;
+    const notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
+    
+    const notitieSpan = document.createElement("span");
+    notitieSpan.className = "notitie-tekst" + (artiest.notitie ? "" : " leeg");
+    notitieSpan.textContent = artiest.notitie || "Notitie...";
+
+    const notitieInput = document.createElement("input");
+    notitieInput.type = "text"; notitieInput.className = "notitie-input";
+    notitieInput.maxLength = 20; notitieInput.value = artiest.notitie;
+    notitieInput.style.display = "none";
+
+    notitieSpan.addEventListener("click", () => {
+      notitieSpan.style.display = "none";
+      notitieInput.style.display = "block";
+      notitieInput.focus();
+    });
+    notitieInput.addEventListener("blur", () => {
+      data.dagen[actieveDag].artiesten[artIdx].notitie = notitieInput.value;
       data.bijgewerktOp = new Date().toISOString();
       slaOpInStorage();
       renderHeader();
+      notitieSpan.textContent = notitieInput.value || "Notitie...";
+      notitieSpan.className = "notitie-tekst" + (notitieInput.value ? "" : " leeg");
+      notitieInput.style.display = "none";
+      notitieSpan.style.display = "";
     });
-    row.append(tijd, badge, naam, sterren, notitie);
+    notitieInput.addEventListener("keydown", e => { if (e.key === "Enter") notitieInput.blur(); });
+    notitieWrap.append(notitieSpan, notitieInput);
+    row.append(tijd, badge, naam, sterren, notitieWrap);
     $body.appendChild(row);
   });
 }
