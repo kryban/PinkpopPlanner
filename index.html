@@ -132,7 +132,7 @@
       <div id="timetable-body"></div>
     </div>
     <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.9</div>
+    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.11</div>
   </div>
 </div>
 
@@ -252,6 +252,8 @@ function downloadJson(naam) {
       renderFilter();
       renderTimetable();
     });
+  });
+}
     balk.appendChild(btn);
   });
 }createElement("a");
@@ -290,7 +292,7 @@ if (opgeslagen) {
   try {
     const json = JSON.parse(opgeslagen);
     if (json.dagen) {
-      laadData(json, null); // null = geen banner, data was al opgeslagen
+      laadData(json, null);
     }
   } catch(e) {}
 } else {
