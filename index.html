@@ -246,6 +246,7 @@ function downloadJson(naam) {
   const a = document.addEventListener("click", e => {
   const btn = e.target.closest(".filter-ster");
   if (!btn) return;
+  console.log("filter klik:", btn.dataset.min);
   filterMin = parseInt(btn.dataset.min);
   document.querySelectorAll(".filter-ster").forEach(b => b.classList.toggle("active", b === btn));
   renderTimetable();
