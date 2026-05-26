@@ -18,7 +18,6 @@
     button, label.btn { font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s, color 0.15s; font-family: inherit; }
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     button:not(:disabled):active, label.btn:active { background: #e8534a; color: #fff; }
-    input[type=text] { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); width: 140px; font-family: inherit; }
     input[type=text]:focus { outline: none; border-color: #e8534a; }
     #app { max-width: 750px; margin: 0 auto; padding: 1rem; }
     #empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 2rem; text-align: center; }
@@ -26,8 +25,6 @@
     #last-hint { background: var(--bg-sec); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 20px; max-width: 380px; width: 100%; }
     #last-hint p { font-size: 13px; color: var(--text-sec); margin-bottom: 8px; }
     #last-hint strong { font-family: monospace; font-size: 13px; display: block; margin-bottom: 12px; }
-    #load-last { background: #e8534a; color: #fff; border: none; width: 100%; justify-content: center; font-size: 13px; padding: 10px; border-radius: 6px; }
-    #load-last:active { background: #c0392b; }
     #save-banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fff8e1; border: 1px solid #f5c518; color: #7a6000; font-size: 13px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     #save-banner button { background: #f5c518; color: #7a6000; border: none; }
     #save-banner button:active { background: #e6b800; color: #7a6000; }
@@ -35,10 +32,12 @@
     #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
     #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     #btn-export.saved { background: #27ae60; color: #fff; }
+    #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-ster { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor: pointer; font-family: inherit; }
+    .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; }
+    .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; cursor: pointer; font-family: inherit; }
     .tab.active { background: #e8534a; color: #fff; font-weight: 700; border-color: #e8534a; }
-    .tab:active { background: #c0392b; color: #fff; }
     #timetable { border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
     #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
     .col-tijd    { min-width: 85px; flex-shrink: 0; }
@@ -51,7 +50,8 @@
     .row:last-child { border-bottom: none; }
     .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); min-width: 85px; }
     .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; min-width: 80px; text-align: center; }
-    .naam { font-weight: 600; font-size: 13px; flex: 1; min-width: 80px; }
+    .naam-link { font-weight: 600; font-size: 13px; flex: 1; min-width: 80px; color: var(--text); text-decoration: none; }
+    .naam-link:hover { color: #1db954; }
     .sterren { display: flex; gap: 2px; min-width: 110px; }
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .ster.vol { color: #f5c518; }
@@ -60,27 +60,26 @@
     .notitie-tekst:hover { border-bottom-color: var(--border); }
     .notitie-tekst.leeg { color: var(--border); font-style: italic; }
     .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid #e8534a; background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
-    .filter-ster { font-size:12px; padding:4px 10px; border-radius:6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor:pointer; }
-    .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
-    footer-note { font-size: 11px; color: var(--text-sec); margin-top: 10px; display: block; }
+    .versie { margin-top: 24px; text-align: center; font-size: 11px; color: #888; }
   </style>
 </head>
 <body class="light">
 <div id="app">
 
-  <!-- Empty state -->
   <div id="empty">
     <div class="emoji">🎪</div>
     <h1>Pinkpop 2026</h1>
     <div id="last-hint" style="display:none">
       <p>Je had eerder dit bestand geladen:</p>
       <strong id="last-naam"></strong>
-      <label class="btn" id="load-last" style="justify-content:center; width:100%; font-size:13px; padding:10px;">
+      <label class="btn" style="justify-content:center; width:100%; font-size:13px; padding:10px; background:#e8534a; color:#fff; border:none;">
         📂 Laad <span id="load-last-naam"></span>
         <input type="file" id="file-last" accept=".json,.html,.htm,.mht,.mhtml" style="display:none" />
       </label>
     </div>
-    <p style="font-size:13px; color:var(--text-sec); max-width:360px" id="empty-sub">Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).</p>
+    <p style="font-size:13px; color:var(--text-sec); max-width:360px">
+      Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).
+    </p>
     <label class="btn" style="font-size:13px; padding:10px 20px; justify-content:center;">
       📂 Kies bestand (.html / .mht / .json)
       <input type="file" id="file-input" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
@@ -88,15 +87,11 @@
     <div id="fout" style="display:none; padding:10px 16px; border-radius:8px; background:#fde8e8; color:#c0392b; font-size:13px;"></div>
   </div>
 
-  <!-- Main app -->
   <div id="main" style="display:none">
-    <!-- Save banner -->
     <div id="save-banner">
       <span>💾 Nieuw programma geladen — druk op Bewaar om op te slaan.</span>
       <button id="btn-banner-bewaar">💾 Bewaar</button>
     </div>
-
-    <!-- Header -->
     <div id="header">
       <div id="header-meta">
         <h1>🎪 Pinkpop 2026</h1>
@@ -109,18 +104,11 @@
           📂 Nieuw bestand
           <input type="file" id="file-nieuw" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
         </label>
-        <button id="btn-export" title="Exporteer backup als JSON bestand">📤 Exporteer</button>
+        <button id="btn-export">📤 Exporteer</button>
       </div>
     </div>
-
-    <!-- Filter -->
-    <div id="filter-balk" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-    </div>
-
-    <!-- Tabs -->
+    <div id="filter-balk"></div>
     <div id="tabs"></div>
-
-    <!-- Timetable -->
     <div id="timetable">
       <div id="timetable-header">
         <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
@@ -131,8 +119,8 @@
       </div>
       <div id="timetable-body"></div>
     </div>
-    <footer-note>Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</footer-note>
-    <div style="margin-top:24px; text-align:center; font-size:11px; color:#888;">v0.9.11</div>
+    <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
+    <div class="versie">v0.9.11</div>
   </div>
 </div>
 
@@ -143,7 +131,9 @@ const ROMMEL = ["nl","en","nl  en","tickets","programma","timetable","faq","nieu
 
 function isRommel(s) {
   const l = s.toLowerCase().trim();
-  return ROMMEL.includes(l) || l.length < 2 || l.startsWith("silent disco") || l.startsWith("feesttent") || l.startsWith("feestplein") || l.startsWith("sun scream") || l.startsWith("b????");
+  return ROMMEL.includes(l) || l.length < 2
+    || l.startsWith("silent disco") || l.startsWith("feesttent")
+    || l.startsWith("feestplein") || l.startsWith("sun scream") || l.startsWith("b????");
 }
 
 function parseerRegel(tekst) {
@@ -168,14 +158,14 @@ function decodeerMHTML(inhoud) {
     const body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
     const encoding = (deel.match(/Content-Transfer-Encoding:\s*(\S+)/i) || [])[1]?.toLowerCase();
     if (encoding === "quoted-printable") return decodeQuotedPrintable(body);
-    if (encoding === "base64") return atob(body.replace(/\s+/g, ""));
+    if (encoding === "base64") return atob(body.replace(/\s+/g,""));
     return body;
   }
   return inhoud;
 }
 
 function decodeQuotedPrintable(str) {
-  return str.replace(/=\r?\n/g, "").replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  return str.replace(/=\r?\n/g,"").replace(/=([0-9A-Fa-f]{2})/g, (_,hex) => String.fromCharCode(parseInt(hex,16)));
 }
 
 function parseTimetable(inhoud, bestaandeData) {
@@ -195,7 +185,11 @@ function parseTimetable(inhoud, bestaandeData) {
     if (!isRommel(p.naam)) artiesten.push(p);
   });
   const bestaandMap = {};
-  if (bestaandeData) bestaandeData.dagen.forEach(d => d.artiesten.forEach(a => { bestaandMap[a.dagSleutel+"|"+a.tijd+"|"+a.naam] = a; }));
+  if (bestaandeData) {
+    bestaandeData.dagen.forEach(d => d.artiesten.forEach(a => {
+      bestaandMap[a.dagSleutel+"|"+a.tijd+"|"+a.naam] = a;
+    }));
+  }
   const groepen = {};
   DAGEN_KEYS.forEach(d => groepen[d] = []);
   artiesten.forEach(a => {
@@ -213,10 +207,10 @@ function parseTimetable(inhoud, bestaandeData) {
   };
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
-const LS_DATA_KEY   = "pinkpop_data";
-const LS_DARK_KEY   = "pinkpop_dark";
+const LS_DATA_KEY = "pinkpop_data";
+const LS_DARK_KEY = "pinkpop_dark";
 
 function fmtDatum(iso) {
   if (!iso) return "—";
@@ -228,45 +222,23 @@ function ddmmyyyy(d = new Date()) {
 function isPinkpopplanner(naam) { return /^Pinkpopplanner-ingeladen-\d{8}/.test(naam); }
 
 function slaOpInStorage() {
-  try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) { console.warn("localStorage vol?", e); }
+  try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) { console.warn("localStorage fout:", e); }
 }
 
 function downloadJson(naam) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
-  const a = function renderFilter() {
-  const balk = document.getElementById("filter-balk");
-  balk.innerHTML = "";
-  const label = document.createElement("span");
-  label.style.cssText = "font-size:12px; color:var(--text-sec);";
-  label.textContent = "Toon minimaal";
-  balk.appendChild(label);
-  const opties = [["Alle", 0], ["★", 1], ["★★", 2], ["★★★", 3], ["★★★★", 4], ["★★★★★", 5]];
-  opties.forEach(([label, min]) => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.dataset.min = min;
-    btn.className = "filter-ster" + (filterMin === min ? " active" : "");
-    btn.addEventListener("click", () => {
-      filterMin = min;
-      renderFilter();
-      renderTimetable();
-    });
-  });
-}
-    balk.appendChild(btn);
-  });
-}createElement("a");
+  const a = document.createElement("a");
   a.href = url; a.download = naam || "pinkpop-backup.json";
   document.body.appendChild(a); a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
 }
 
-// ── State ────────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────────
 let data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0;
 let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
 
-// ── UI refs ──────────────────────────────────────────────────────────────────
+// ── UI refs ───────────────────────────────────────────────────────────────────
 const $empty      = document.getElementById("empty");
 const $main       = document.getElementById("main");
 const $fout       = document.getElementById("fout");
@@ -281,43 +253,36 @@ const $metaBij    = document.getElementById("meta-bijgewerkt");
 const $lastHint   = document.getElementById("last-hint");
 const $lastNaam   = document.getElementById("last-naam");
 const $loadLastNaam = document.getElementById("load-last-naam");
-const $emptySub   = document.getElementById("empty-sub");
+const $filterBalk = document.getElementById("filter-balk");
 
-// ── Init: herstel uit localStorage ───────────────────────────────────────────
-const opgeslagen = localStorage.getItem(LS_DATA_KEY);
+// ── Init: herstel uit localStorage ────────────────────────────────────────────
 darkMode = localStorage.getItem(LS_DARK_KEY) === "true";
-if (darkMode) { document.body.className = "dark"; $btnDark && ($btnDark.textContent = "☀️"); }
+if (darkMode) { document.body.className = "dark"; $btnDark.textContent = "☀️"; }
 
+const opgeslagen = localStorage.getItem(LS_DATA_KEY);
 if (opgeslagen) {
   try {
     const json = JSON.parse(opgeslagen);
-    if (json.dagen) {
-      laadData(json, null);
-    }
+    if (json.dagen) laadData(json, null);
   } catch(e) {}
-} else {
-  // Geen opgeslagen data — toon hint als er een bekende bestandsnaam is
-  const laatstBestand = null; // niet meer nodig, data zit in localStorage
-  $emptySub.innerHTML = 'Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).';
 }
 
-// ── File handlers ─────────────────────────────────────────────────────────────
+// ── Bestand verwerken ─────────────────────────────────────────────────────────
 function verwerkBestand(file) {
   $fout.style.display = "none";
   const isJson = file.name.endsWith(".json");
-  const isPlanner = isPinkpopplanner(file.name);
   const reader = new FileReader();
   reader.onload = ev => {
     try {
       if (isJson) {
         const json = JSON.parse(ev.target.result);
         if (!json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
-        laadData(json, null); // geïmporteerde backup — geen banner nodig
+        laadData(json, null);
         slaOpInStorage();
       } else {
         const json = parseTimetable(ev.target.result, data);
-        if (!json.dagen.length) throw new Error("Geen artiesten gevonden — is dit de juiste pagina? Ondersteunde formaten: .html, .mht, .mhtml");
-        laadData(json, true); // true = toon banner
+        if (!json.dagen.length) throw new Error("Geen artiesten gevonden. Ondersteunde formaten: .html, .mht, .mhtml");
+        laadData(json, true);
         slaOpInStorage();
       }
     } catch(e) { $fout.style.display = "block"; $fout.textContent = e.message; }
@@ -335,9 +300,10 @@ function verwerkBestand(file) {
 function laadData(json, toonBanner) {
   data = json;
   actieveDag = 0;
+  filterMin = 0;
+  opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
   $empty.style.display = "none";
   $main.style.display = "block";
-  opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
   renderHeader();
   renderBanner();
   renderFilter();
@@ -345,7 +311,7 @@ function laadData(json, toonBanner) {
   renderTimetable();
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// ── Render functies ───────────────────────────────────────────────────────────
 function renderHeader() {
   $metaIn.textContent  = "Festival programma ingeladen op " + fmtDatum(data.ingeladenOp);
   $metaBij.textContent = "Laatst bijgewerkt op " + fmtDatum(data.bijgewerktOp);
@@ -355,88 +321,109 @@ function renderBanner() {
   $banner.style.display = opslaanNaam ? "flex" : "none";
 }
 
+function renderFilter() {
+  $filterBalk.innerHTML = "";
+  const lbl = document.createElement("span");
+  lbl.style.cssText = "font-size:12px; color:var(--text-sec);";
+  lbl.textContent = "Toon minimaal";
+  $filterBalk.appendChild(lbl);
+  [["Alle",0],["★",1],["★★",2],["★★★",3],["★★★★",4],["★★★★★",5]].forEach(function(optie) {
+    var tekst = optie[0], min = optie[1];
+    var btn = document.createElement("button");
+    btn.textContent = tekst;
+    btn.className = "filter-ster" + (filterMin === min ? " active" : "");
+    btn.addEventListener("click", function() {
+      filterMin = min;
+      renderFilter();
+      renderTimetable();
+    });
+    $filterBalk.appendChild(btn);
+  });
+}
+
 function renderTabs() {
   $tabs.innerHTML = "";
-  data.dagen.forEach((d, i) => {
-    const btn = document.createElement("button");
+  data.dagen.forEach(function(d, i) {
+    var btn = document.createElement("button");
     btn.className = "tab" + (i === actieveDag ? " active" : "");
     btn.innerHTML = d.dag + ' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
-    btn.addEventListener("click", () => { actieveDag = i; renderTabs(); renderTimetable(); });
+    btn.addEventListener("click", function() { actieveDag = i; renderTabs(); renderTimetable(); });
     $tabs.appendChild(btn);
   });
 }
 
 function gesorteerdeArtiesten() {
-  return [...data.dagen[actieveDag].artiesten]
-    .filter(a => filterMin === 0 || (a.beoordeling ?? 0) >= filterMin)
-    .sort((a, b) => {
-    let va, vb;
-    if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
-    else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
-    else                             { va = a.beoordeling ?? -1; vb = b.beoordeling ?? -1; }
-    if (va < vb) return sortRichting === "asc" ? -1 : 1;
-    if (va > vb) return sortRichting === "asc" ?  1 : -1;
-    return 0;
-  });
+  return data.dagen[actieveDag].artiesten
+    .filter(function(a) { return filterMin === 0 || (a.beoordeling || 0) >= filterMin; })
+    .slice()
+    .sort(function(a, b) {
+      var va, vb;
+      if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
+      else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
+      else                             { va = a.beoordeling || 0; vb = b.beoordeling || 0; }
+      if (va < vb) return sortRichting === "asc" ? -1 : 1;
+      if (va > vb) return sortRichting === "asc" ?  1 : -1;
+      return 0;
+    });
 }
 
 function renderTimetable() {
   $body.innerHTML = "";
-  ["tijd","podium","beoordeling"].forEach(k => {
-    const ic = document.getElementById("icon-"+k);
+  ["tijd","podium","beoordeling"].forEach(function(k) {
+    var ic = document.getElementById("icon-"+k);
     ic.textContent = sortKolom === k ? (sortRichting === "asc" ? "↑" : "↓") : "↕";
     ic.style.opacity = sortKolom === k ? "1" : "0.3";
   });
-  gesorteerdeArtiesten().forEach(artiest => {
-    const dag = data.dagen[actieveDag];
-    const artIdx = dag.artiesten.indexOf(artiest);
-    const kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
-    const row = document.createElement("div"); row.className = "row";
-    const tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
-    const badge = document.createElement("span"); badge.className = "podium-badge col-podium";
-    badge.style.background = kleur + "33"; badge.style.color = kleur; badge.textContent = artiest.podium;
-    const naam = document.createElement("a");
-    naam.className = "naam col-naam";
+
+  gesorteerdeArtiesten().forEach(function(artiest) {
+    var dag = data.dagen[actieveDag];
+    var artIdx = dag.artiesten.indexOf(artiest);
+    var kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
+
+    var row = document.createElement("div"); row.className = "row";
+
+    var tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
+
+    var badge = document.createElement("span"); badge.className = "podium-badge col-podium";
+    badge.style.background = kleur+"33"; badge.style.color = kleur; badge.textContent = artiest.podium;
+
+    var naam = document.createElement("a"); naam.className = "naam-link col-naam";
     naam.textContent = artiest.naam;
     naam.href = "https://open.spotify.com/search/" + encodeURIComponent(artiest.naam);
-    naam.target = "_blank";
-    naam.rel = "noopener noreferrer";
-    naam.style.color = "var(--text)";
-    naam.style.textDecoration = "none";
-    naam.addEventListener("mouseenter", () => naam.style.color = "#1db954");
-    naam.addEventListener("mouseleave", () => naam.style.color = "var(--text)");
-    const sterren = document.createElement("div"); sterren.className = "sterren col-ster";
-    for (let s = 1; s <= 5; s++) {
-      const ster = document.createElement("span");
-      ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
-      ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
-      ster.addEventListener("click", () => {
-        data.dagen[actieveDag].artiesten[artIdx].beoordeling = artiest.beoordeling === s ? null : s;
-        data.bijgewerktOp = new Date().toISOString();
-        slaOpInStorage();
-        renderHeader();
-        renderTimetable();
-      });
-      sterren.appendChild(ster);
+    naam.target = "_blank"; naam.rel = "noopener noreferrer";
+
+    var sterren = document.createElement("div"); sterren.className = "sterren col-ster";
+    for (var s = 1; s <= 5; s++) {
+      (function(s) {
+        var ster = document.createElement("span");
+        ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
+        ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
+        ster.addEventListener("click", function() {
+          dag.artiesten[artIdx].beoordeling = artiest.beoordeling === s ? null : s;
+          data.bijgewerktOp = new Date().toISOString();
+          slaOpInStorage();
+          renderHeader();
+          renderTimetable();
+        });
+        sterren.appendChild(ster);
+      })(s);
     }
-    const notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
-    
-    const notitieSpan = document.createElement("span");
+
+    var notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
+    var notitieSpan = document.createElement("span");
     notitieSpan.className = "notitie-tekst" + (artiest.notitie ? "" : " leeg");
     notitieSpan.textContent = artiest.notitie || "Notitie...";
-
-    const notitieInput = document.createElement("input");
+    var notitieInput = document.createElement("input");
     notitieInput.type = "text"; notitieInput.className = "notitie-input";
     notitieInput.maxLength = 35; notitieInput.value = artiest.notitie;
     notitieInput.style.display = "none";
-
-    notitieSpan.addEventListener("click", () => {
+    notitieSpan.addEventListener("click", function() {
       notitieSpan.style.display = "none";
       notitieInput.style.display = "block";
       notitieInput.focus();
     });
-    notitieInput.addEventListener("blur", () => {
-      data.dagen[actieveDag].artiesten[artIdx].notitie = notitieInput.value;
+    notitieInput.addEventListener("blur", function() {
+      dag.artiesten[artIdx].notitie = notitieInput.value;
       data.bijgewerktOp = new Date().toISOString();
       slaOpInStorage();
       renderHeader();
@@ -445,38 +432,38 @@ function renderTimetable() {
       notitieInput.style.display = "none";
       notitieSpan.style.display = "";
     });
-    notitieInput.addEventListener("keydown", e => { if (e.key === "Enter") notitieInput.blur(); });
+    notitieInput.addEventListener("keydown", function(e) { if (e.key === "Enter") notitieInput.blur(); });
     notitieWrap.append(notitieSpan, notitieInput);
+
     row.append(tijd, badge, naam, sterren, notitieWrap);
     $body.appendChild(row);
   });
 }
 
 // ── Knoppen ───────────────────────────────────────────────────────────────────
-$btnBannerB.addEventListener("click", () => {
+$btnBannerB.addEventListener("click", function() {
   slaOpInStorage();
   opslaanNaam = null;
   renderBanner();
 });
 
-$btnExport.addEventListener("click", () => {
-  const naam = "Pinkpopplanner-backup-" + ddmmyyyy() + ".json";
-  downloadJson(naam);
+$btnExport.addEventListener("click", function() {
+  downloadJson("Pinkpopplanner-backup-" + ddmmyyyy() + ".json");
   $btnExport.textContent = "✓ Geëxporteerd!";
   $btnExport.classList.add("saved");
-  setTimeout(() => { $btnExport.textContent = "📤 Exporteer"; $btnExport.classList.remove("saved"); }, 2000);
+  setTimeout(function() { $btnExport.textContent = "📤 Exporteer"; $btnExport.classList.remove("saved"); }, 2000);
 });
 
-$btnDark.addEventListener("click", () => {
+$btnDark.addEventListener("click", function() {
   darkMode = !darkMode;
   document.body.className = darkMode ? "dark" : "light";
   $btnDark.textContent = darkMode ? "☀️" : "🌙";
   localStorage.setItem(LS_DARK_KEY, darkMode);
 });
 
-document.querySelectorAll(".sortable").forEach(el => {
-  el.addEventListener("click", () => {
-    const k = el.dataset.kolom;
+document.querySelectorAll(".sortable").forEach(function(el) {
+  el.addEventListener("click", function() {
+    var k = el.dataset.kolom;
     if (sortKolom === k) sortRichting = sortRichting === "asc" ? "desc" : "asc";
     else { sortKolom = k; sortRichting = "asc"; }
     renderTimetable();
