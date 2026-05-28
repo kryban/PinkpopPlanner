@@ -35,6 +35,9 @@
     #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-ster { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor: pointer; font-family: inherit; }
     .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
+    .filter-ster-balk { display: flex; gap: 2px; align-items: center; }
+    .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
+    .filter-ster-balk .ster.vol { color: #f5c518; }
     .filter-zoek { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-family: inherit; width: 130px; }
     .filter-zoek:focus { outline: none; border-color: #e8534a; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -122,7 +125,7 @@
       <div id="timetable-body"></div>
     </div>
     <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-    <div class="versie">v1.0.2</div>
+    <div class="versie">v1.0.3</div>
   </div>
 </div>
 
@@ -329,22 +332,29 @@ function renderFilter() {
   lbl.style.cssText = "font-size:12px; color:var(--text-sec);";
   lbl.textContent = "Toon minimaal";
   $filterBalk.appendChild(lbl);
-  [["Alle",0],["★",1],["★★",2],["★★★",3],["★★★★",4],["★★★★★",5]].forEach(function(optie) {
-    var tekst = optie[0], min = optie[1];
-    var btn = document.createElement("button");
-    btn.textContent = tekst;
-    btn.className = "filter-ster" + (filterMin === min ? " active" : "");
-    btn.addEventListener("click", function() {
-      filterMin = min;
-      renderFilter();
-      renderTimetable();
-    });
-    $filterBalk.appendChild(btn);
-  });
+
+  var balk = document.createElement("div");
+  balk.className = "filter-ster-balk";
+  for (var s = 1; s <= 5; s++) {
+    (function(s) {
+      var ster = document.createElement("span");
+      ster.className = "ster" + (filterMin >= s ? " vol" : "");
+      ster.textContent = filterMin >= s ? "★" : "☆";
+      ster.addEventListener("click", function() {
+        filterMin = filterMin === s ? 0 : s;
+        renderFilter();
+        renderTimetable();
+      });
+      balk.appendChild(ster);
+    })(s);
+  }
+  $filterBalk.appendChild(balk);
+
   var sep = document.createElement("span");
   sep.style.cssText = "font-size:12px; color:var(--text-sec); margin-left:4px;";
   sep.textContent = "Commentaar bevat";
   $filterBalk.appendChild(sep);
+
   var zoek = document.createElement("input");
   zoek.type = "text";
   zoek.className = "filter-zoek";
