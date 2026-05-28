@@ -35,6 +35,8 @@
     #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-ster { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor: pointer; font-family: inherit; }
     .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
+    .filter-zoek { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-family: inherit; width: 130px; }
+    .filter-zoek:focus { outline: none; border-color: #e8534a; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
     .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; cursor: pointer; font-family: inherit; }
     .tab.active { background: #e8534a; color: #fff; font-weight: 700; border-color: #e8534a; }
@@ -120,7 +122,7 @@
       <div id="timetable-body"></div>
     </div>
     <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-    <div class="versie">v1.0.1</div>
+    <div class="versie">v1.0.2</div>
   </div>
 </div>
 
@@ -235,7 +237,7 @@ function downloadJson(naam) {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0;
+let data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0, filterWoord = "";
 let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
 
 // ── UI refs ───────────────────────────────────────────────────────────────────
@@ -300,7 +302,7 @@ function verwerkBestand(file) {
 function laadData(json, toonBanner) {
   data = json;
   actieveDag = 0;
-  filterMin = 0;
+  filterMin = 0; filterWoord = "";
   opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
   $empty.style.display = "none";
   $main.style.display = "block";
@@ -323,7 +325,7 @@ function renderBanner() {
 
 function renderFilter() {
   $filterBalk.innerHTML = "";
-  const lbl = document.createElement("span");
+  var lbl = document.createElement("span");
   lbl.style.cssText = "font-size:12px; color:var(--text-sec);";
   lbl.textContent = "Toon minimaal";
   $filterBalk.appendChild(lbl);
@@ -339,6 +341,21 @@ function renderFilter() {
     });
     $filterBalk.appendChild(btn);
   });
+  var sep = document.createElement("span");
+  sep.style.cssText = "font-size:12px; color:var(--text-sec); margin-left:4px;";
+  sep.textContent = "Commentaar bevat";
+  $filterBalk.appendChild(sep);
+  var zoek = document.createElement("input");
+  zoek.type = "text";
+  zoek.className = "filter-zoek";
+  zoek.placeholder = "Zoekwoord...";
+  zoek.value = filterWoord;
+  zoek.addEventListener("blur", function() {
+    filterWoord = zoek.value.trim().toLowerCase();
+    renderTimetable();
+  });
+  zoek.addEventListener("keydown", function(e) { if (e.key === "Enter") zoek.blur(); });
+  $filterBalk.appendChild(zoek);
 }
 
 function renderTabs() {
@@ -354,7 +371,11 @@ function renderTabs() {
 
 function gesorteerdeArtiesten() {
   return data.dagen[actieveDag].artiesten
-    .filter(function(a) { return filterMin === 0 || (a.beoordeling || 0) >= filterMin; })
+    .filter(function(a) {
+      var sterOk = filterMin === 0 || (a.beoordeling || 0) >= filterMin;
+      var woordOk = filterWoord === "" || (a.notitie || "").toLowerCase().indexOf(filterWoord) !== -1;
+      return sterOk && woordOk;
+    })
     .slice()
     .sort(function(a, b) {
       var va, vb;
