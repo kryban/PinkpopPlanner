@@ -127,7 +127,7 @@
       <div id="timetable-body"></div>
     </div>
     <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-    <div class="versie">v1.0.4</div>
+    <div class="versie">v1.0.5</div>
   </div>
 </div>
 
@@ -386,9 +386,13 @@ function renderTabs() {
 function gesorteerdeArtiesten() {
   return data.dagen[actieveDag].artiesten
     .filter(function(a) {
-      var sterOk = filterMin === 0 || (a.beoordeling || 0) >= filterMin;
-      var woordOk = filterWoord === "" || (a.notitie || "").toLowerCase().indexOf(filterWoord) !== -1;
-      return sterOk && woordOk;
+      var heeftSter = filterMin > 0;
+      var heeftWoord = filterWoord !== "";
+      if (!heeftSter && !heeftWoord) return true;
+      var sterOk = heeftSter && (a.beoordeling || 0) >= filterMin;
+      var woordOk = heeftWoord && (a.notitie || "").toLowerCase().indexOf(filterWoord) !== -1;
+      if (heeftSter && heeftWoord) return sterOk || woordOk;
+      return heeftSter ? sterOk : woordOk;
     })
     .slice()
     .sort(function(a, b) {
