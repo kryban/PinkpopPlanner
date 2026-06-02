@@ -127,7 +127,7 @@
       <div id="timetable-body"></div>
     </div>
     <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-    <div class="versie">v1.0.5</div>
+    <div class="versie">v1.1.0</div>
   </div>
 </div>
 
@@ -214,6 +214,85 @@ function parseTimetable(inhoud, bestaandeData) {
   };
 }
 
+// ── Weer ─────────────────────────────────────────────────────────────────────
+var weerData = {};
+
+function haalWeerOp() {
+  var url = "https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date=2026-06-19&end_date=2026-06-21";
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var times = json.hourly.time;
+      var precip = json.hourly.precipitation;
+      var cloud = json.hourly.cloudcover;
+      for (var i = 0; i < times.length; i++) {
+        weerData[times[i]] = { precipitation: precip[i], cloudcover: cloud[i] };
+      }
+      renderTimetable();
+    })
+    .catch(function() {});
+}
+
+function berekenWeer(dagSleutel, tijd) {
+  var dagMap = { "vrijdag": "2026-06-19", "zaterdag": "2026-06-20", "zondag": "2026-06-21" };
+  var datum = dagMap[dagSleutel];
+  if (!datum) return null;
+  var delen = tijd.split("–");
+  if (delen.length < 2) return null;
+  var beginUur = parseInt(delen[0].trim().split(":")[0]);
+  var eindUur  = parseInt(delen[1].trim().split(":")[0]);
+  if (isNaN(beginUur) || isNaN(eindUur)) return null;
+  var totalePrecip = 0, totalCloud = 0, count = 0;
+  for (var u = beginUur; u <= eindUur; u++) {
+    var uur = u % 24;
+    var dagDatum = u >= 24 ? verschuifDag(datum) : datum;
+    var key = dagDatum + "T" + String(uur).padStart(2,"0") + ":00";
+    if (weerData[key] !== undefined) {
+      totalePrecip += weerData[key].precipitation;
+      totalCloud   += weerData[key].cloudcover;
+      count++;
+    }
+  }
+  if (count === 0) return null;
+  var gemCloud = totalCloud / count;
+  if (totalePrecip === 0 && gemCloud < 30) return "zon";
+  if (totalePrecip === 0)                  return "bewolkt";
+  if (totalePrecip < 2)                    return "licht";
+  return "zwaar";
+}
+
+function verschuifDag(datum) {
+  var d = new Date(datum);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0,10);
+}
+
+function maakWeerIcoon(type) {
+  if (type === "zon")     return document.createTextNode("☀️");
+  if (type === "bewolkt") return document.createTextNode("⛅");
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.style.cursor = "pointer";
+  svg.style.display = "inline-block";
+  svg.style.verticalAlign = "middle";
+  if (type === "licht") {
+    svg.setAttribute("width","18"); svg.setAttribute("height","20"); svg.setAttribute("viewBox","0 0 18 20");
+    var path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d","M9 1 C9 1 2 9 2 13.5 C2 17.09 5.13 20 9 20 C12.87 20 16 17.09 16 13.5 C16 9 9 1 9 1Z");
+    path.setAttribute("fill","#4a90e8");
+    svg.appendChild(path);
+  } else {
+    svg.setAttribute("width","26"); svg.setAttribute("height","20"); svg.setAttribute("viewBox","0 0 26 20");
+    var p1 = document.createElementNS("http://www.w3.org/2000/svg","path");
+    p1.setAttribute("d","M8 1 C8 1 2 8.5 2 12.5 C2 15.81 4.69 18.5 8 18.5 C11.31 18.5 14 15.81 14 12.5 C14 8.5 8 1 8 1Z");
+    p1.setAttribute("fill","#4a90e8"); p1.setAttribute("opacity","0.55");
+    var p2 = document.createElementNS("http://www.w3.org/2000/svg","path");
+    p2.setAttribute("d","M18 1 C18 1 12 8.5 12 12.5 C12 15.81 14.69 18.5 18 18.5 C21.31 18.5 24 15.81 24 12.5 C24 8.5 18 1 18 1Z");
+    p2.setAttribute("fill","#4a90e8");
+    svg.appendChild(p1); svg.appendChild(p2);
+  }
+  return svg;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
 const LS_DATA_KEY = "pinkpop_data";
@@ -266,6 +345,8 @@ const $filterRij2 = document.getElementById("filter-rij2");
 // ── Init: herstel uit localStorage ────────────────────────────────────────────
 darkMode = localStorage.getItem(LS_DARK_KEY) === "true";
 if (darkMode) { document.body.className = "dark"; $btnDark.textContent = "☀️"; }
+
+haalWeerOp();
 
 const opgeslagen = localStorage.getItem(LS_DATA_KEY);
 if (opgeslagen) {
@@ -423,8 +504,22 @@ function renderTimetable() {
 
     var tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
 
-    var badge = document.createElement("span"); badge.className = "podium-badge col-podium";
-    badge.style.background = kleur+"33"; badge.style.color = kleur; badge.textContent = artiest.podium;
+    var podiumWrap = document.createElement("span");
+    podiumWrap.style.cssText = "display:flex; align-items:center; gap:5px; min-width:80px;";
+    podiumWrap.appendChild(badge);
+
+    var weerType = berekenWeer(artiest.dagSleutel, artiest.tijd);
+    if (weerType) {
+      var icoon = maakWeerIcoon(weerType);
+      var link = document.createElement("a");
+      link.href = "https://www.buienradar.nl/weer/landgraaf/nl/2751827";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.style.cssText = "display:inline-flex; align-items:center; text-decoration:none; font-size:16px; line-height:1;";
+      link.title = weerType === "zon" ? "Zonnig" : weerType === "bewolkt" ? "Bewolkt, geen regen" : weerType === "licht" ? "Lichte regen" : "Flinke regen";
+      link.appendChild(icoon);
+      podiumWrap.appendChild(link);
+    }
 
     var naam = document.createElement("a"); naam.className = "naam-link col-naam";
     naam.textContent = artiest.naam;
@@ -474,7 +569,7 @@ function renderTimetable() {
     notitieInput.addEventListener("keydown", function(e) { if (e.key === "Enter") notitieInput.blur(); });
     notitieWrap.append(notitieSpan, notitieInput);
 
-    row.append(tijd, badge, naam, sterren, notitieWrap);
+    row.append(tijd, podiumWrap, naam, sterren, notitieWrap);
     $body.appendChild(row);
   });
 }
