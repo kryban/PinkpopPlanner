@@ -109,6 +109,8 @@
           <input type="file" id="file-nieuw" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
         </label>
         <button id="btn-export">📤 Exporteer</button>
+        <!-- TESTKNOP - verwijderen na testen -->
+        <button id="btn-testweer" onclick="laadTestWeer()" style="background:#f5c518; color:#7a6000; border:none;">🌦 Testweer</button>
       </div>
     </div>
     <div id="filter-balk"></div>
@@ -236,6 +238,23 @@ function haalWeerOp() {
       if (data) renderTimetable();
     })
     .catch(function() {});
+}
+
+function laadTestWeer() {
+  var dagen = ["2026-06-19","2026-06-20","2026-06-21"];
+  var types = [
+    { precipitation: 0, cloudcover: 10 },   // zon
+    { precipitation: 0, cloudcover: 60 },   // bewolkt
+    { precipitation: 0.8, cloudcover: 80 }, // licht
+    { precipitation: 3.5, cloudcover: 90 }  // zwaar
+  ];
+  for (var d = 0; d < dagen.length; d++) {
+    for (var u = 0; u < 24; u++) {
+      var key = dagen[d] + "T" + (u < 10 ? "0" : "") + u + ":00";
+      weerData[key] = types[(d * 8 + u) % 4];
+    }
+  }
+  if (data) renderTimetable();
 }
 
 function berekenWeer(dagSleutel, tijd) {
