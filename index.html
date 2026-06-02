@@ -111,7 +111,7 @@
         </label>
         <button id="btn-export">📤 Exporteer</button>
         <!-- TESTKNOP - verwijderen na testen -->
-        <button id="btn-testweer" onclick="laadTestWeer()" style="background:#f5c518; color:#7a6000; border:none;">🌦 Testweer</button>
+        <button id="btn-testweer" onclick="toggleTestWeer()" style="background:var(--bg-sec); color:var(--text-sec); border:0.5px solid var(--border);">🌦 Testweer</button>
       </div>
     </div>
     <div id="filter-balk"></div>
@@ -239,19 +239,31 @@ function haalWeerOp() {
     .catch(function() {});
 }
 
-function laadTestWeer() {
-  var dagen = ["2026-06-19","2026-06-20","2026-06-21"];
-  var types = [
-    { precipitation: 0, cloudcover: 10 },   // zon
-    { precipitation: 0, cloudcover: 60 },   // bewolkt
-    { precipitation: 0.8, cloudcover: 80 }, // licht
-    { precipitation: 3.5, cloudcover: 90 }  // zwaar
-  ];
-  for (var d = 0; d < dagen.length; d++) {
-    for (var u = 0; u < 24; u++) {
-      var key = dagen[d] + "T" + (u < 10 ? "0" : "") + u + ":00";
-      weerData[key] = types[(d * 8 + u) % 4];
+var testWeerActief = false;
+
+function toggleTestWeer() {
+  testWeerActief = !testWeerActief;
+  var btn = document.getElementById("btn-testweer");
+  if (testWeerActief) {
+    var dagen = ["2026-06-19","2026-06-20","2026-06-21"];
+    var types = [
+      { precipitation: 0, cloudcover: 10 },
+      { precipitation: 0, cloudcover: 60 },
+      { precipitation: 0.8, cloudcover: 80 },
+      { precipitation: 3.5, cloudcover: 90 }
+    ];
+    for (var d = 0; d < dagen.length; d++) {
+      for (var u = 0; u < 24; u++) {
+        var key = dagen[d] + "T" + (u < 10 ? "0" : "") + u + ":00";
+        weerData[key] = types[(d * 8 + u) % 4];
+      }
     }
+    btn.style.background = "#f5c518";
+    btn.style.color = "#7a6000";
+  } else {
+    weerData = {};
+    btn.style.background = "var(--bg-sec)";
+    btn.style.color = "var(--text-sec)";
   }
   if (data) renderTimetable();
 }
