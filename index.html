@@ -49,8 +49,9 @@
     .col-naam    { flex: 1; min-width: 80px; }
     .col-ster    { min-width: 110px; flex-shrink: 0; }
     .col-notitie { flex: 1; min-width: 80px; }
+    .row-sub     { display: flex; align-items: center; gap: 10px; width: 100%; padding-top: 4px; }
     .sortable    { cursor: pointer; user-select: none; }
-    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); }
+    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
     .row:last-child { border-bottom: none; }
     .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); }
     .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; text-align: center; white-space: nowrap; }
@@ -121,8 +122,6 @@
         <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
         <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
         <span class="col-naam"></span>
-        <span class="col-ster sortable" data-kolom="beoordeling">Beoordeling <span id="icon-beoordeling">↕</span></span>
-        <span class="col-notitie"></span>
       </div>
       <div id="timetable-body"></div>
     </div>
@@ -577,7 +576,10 @@ function renderTimetable() {
       notitieWrap.appendChild(notitieSpan); notitieWrap.appendChild(notitieInput);
 
       row.appendChild(tijd); row.appendChild(podiumWrap); row.appendChild(naam);
-      row.appendChild(sterren); row.appendChild(notitieWrap);
+
+      var rowSub = document.createElement("div"); rowSub.className = "row-sub";
+      rowSub.appendChild(sterren); rowSub.appendChild(notitieWrap);
+      row.appendChild(rowSub);
       $body.appendChild(row);
     })(indices[ii]);
   }
