@@ -32,10 +32,8 @@
     #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
     #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     #btn-export.saved { background: #27ae60; color: #fff; }
-    #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     #filter-rij2 { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-    .filter-ster { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text-sec); cursor: pointer; font-family: inherit; }
-    .filter-ster.active { background: #e8534a; color: #fff; border-color: #e8534a; }
     .filter-ster-balk { display: flex; gap: 2px; align-items: center; }
     .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .filter-ster-balk .ster.vol { color: #f5c518; }
@@ -47,22 +45,22 @@
     #timetable { border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
     #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
     .col-tijd    { min-width: 85px; flex-shrink: 0; }
-    .col-podium  { min-width: 80px; flex-shrink: 0; }
+    .col-podium  { min-width: 90px; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
     .col-naam    { flex: 1; min-width: 80px; }
     .col-ster    { min-width: 110px; flex-shrink: 0; }
     .col-notitie { flex: 1; min-width: 80px; }
     .sortable    { cursor: pointer; user-select: none; }
-    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); }
     .row:last-child { border-bottom: none; }
-    .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); min-width: 85px; }
-    .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; min-width: 80px; text-align: center; }
-    .naam-link { font-weight: 600; font-size: 13px; flex: 1; min-width: 80px; color: var(--text); text-decoration: none; }
+    .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); }
+    .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; text-align: center; white-space: nowrap; }
+    .naam-link { font-weight: 600; font-size: 13px; flex: 1; color: var(--text); text-decoration: none; }
     .naam-link:hover { color: #1db954; }
-    .sterren { display: flex; gap: 2px; min-width: 110px; }
+    .sterren { display: flex; gap: 2px; }
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .ster.vol { color: #f5c518; }
     .ster:hover { color: #f5c518; }
-    .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; flex: 1; padding: 4px 0; border-bottom: 1px dashed transparent; }
+    .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; padding: 4px 0; border-bottom: 1px dashed transparent; }
     .notitie-tekst:hover { border-bottom-color: var(--border); }
     .notitie-tekst.leeg { color: var(--border); font-style: italic; }
     .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid #e8534a; background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
@@ -132,94 +130,101 @@
 </div>
 
 <script>
-// ── Parser ───────────────────────────────────────────────────────────────────
-const DAGEN_KEYS = ["vrijdag","zaterdag","zondag"];
-const ROMMEL = ["nl","en","nl  en","tickets","programma","timetable","faq","nieuws","verblijf","vervoer","merchandise","pinkplanner","festivalterrein","over ons","wijnrestaurant"];
+// ── Parser ────────────────────────────────────────────────────────────────────
+var DAGEN_KEYS = ["vrijdag","zaterdag","zondag"];
+var ROMMEL = ["nl","en","nl  en","tickets","programma","timetable","faq","nieuws","verblijf","vervoer","merchandise","pinkplanner","festivalterrein","over ons","wijnrestaurant"];
 
 function isRommel(s) {
-  const l = s.toLowerCase().trim();
-  return ROMMEL.includes(l) || l.length < 2
-    || l.startsWith("silent disco") || l.startsWith("feesttent")
-    || l.startsWith("feestplein") || l.startsWith("sun scream") || l.startsWith("b????");
+  var l = s.toLowerCase().trim();
+  return ROMMEL.indexOf(l) !== -1 || l.length < 2
+    || l.indexOf("silent disco") === 0 || l.indexOf("feesttent") === 0
+    || l.indexOf("feestplein") === 0 || l.indexOf("sun scream") === 0;
 }
 
 function parseerRegel(tekst) {
-  const dagMatch = tekst.match(/^(vrijdag|zaterdag|zondag)\s+\d+\s+\w+/i);
-  const tijdMatch = tekst.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  const podiumMatch = tekst.match(/\|\s*(South Stage|North Stage|Tent Stage|Stage 4)\s*/i);
+  var dagMatch = tekst.match(/^(vrijdag|zaterdag|zondag)\s+\d+\s+\w+/i);
+  var tijdMatch = tekst.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  var podiumMatch = tekst.match(/\|\s*(South Stage|North Stage|Tent Stage|Stage 4)\s*/i);
   if (!dagMatch || !tijdMatch || !podiumMatch) return null;
-  const dag = dagMatch[0].trim();
-  const tijd = tijdMatch[1] + " – " + tijdMatch[2];
-  const podium = podiumMatch[1].trim();
-  const naPodium = tekst.slice(tekst.lastIndexOf(podiumMatch[1]) + podiumMatch[1].length).replace(/\s+/g," ").trim();
+  var dag = dagMatch[0].trim();
+  var tijd = tijdMatch[1] + " – " + tijdMatch[2];
+  var podium = podiumMatch[1].trim();
+  var naPodium = tekst.slice(tekst.lastIndexOf(podiumMatch[1]) + podiumMatch[1].length).replace(/\s+/g," ").trim();
   if (!naPodium) return null;
-  const dagSleutel = dag.split(" ")[0].toLowerCase();
-  if (!DAGEN_KEYS.includes(dagSleutel)) return null;
-  return { dag, dagSleutel, tijd, podium, naam: naPodium, beoordeling: null, notitie: "" };
+  var dagSleutel = dag.split(" ")[0].toLowerCase();
+  if (DAGEN_KEYS.indexOf(dagSleutel) === -1) return null;
+  return { dag: dag, dagSleutel: dagSleutel, tijd: tijd, podium: podium, naam: naPodium, beoordeling: null, notitie: "" };
 }
 
 function decodeerMHTML(inhoud) {
-  const delen = inhoud.split(/^--/m);
-  for (const deel of delen) {
+  var delen = inhoud.split(/^--/m);
+  for (var i = 0; i < delen.length; i++) {
+    var deel = delen[i];
     if (!/Content-Type:\s*text\/html/i.test(deel)) continue;
-    const body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
-    const encoding = (deel.match(/Content-Transfer-Encoding:\s*(\S+)/i) || [])[1]?.toLowerCase();
-    if (encoding === "quoted-printable") return decodeQuotedPrintable(body);
+    var body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
+    var encMatch = deel.match(/Content-Transfer-Encoding:\s*(\S+)/i);
+    var encoding = encMatch ? encMatch[1].toLowerCase() : "";
+    if (encoding === "quoted-printable") return decodeQP(body);
     if (encoding === "base64") return atob(body.replace(/\s+/g,""));
     return body;
   }
   return inhoud;
 }
 
-function decodeQuotedPrintable(str) {
-  return str.replace(/=\r?\n/g,"").replace(/=([0-9A-Fa-f]{2})/g, (_,hex) => String.fromCharCode(parseInt(hex,16)));
+function decodeQP(str) {
+  return str.replace(/=\r?\n/g,"").replace(/=([0-9A-Fa-f]{2})/g, function(_,hex) { return String.fromCharCode(parseInt(hex,16)); });
 }
 
 function parseTimetable(inhoud, bestaandeData) {
-  const isMHTML = /^MIME-Version:/im.test(inhoud) || /^Content-Type:\s*multipart/im.test(inhoud);
-  const html = isMHTML ? decodeerMHTML(inhoud) : inhoud;
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  const artiesten = [], gezien = new Set();
-  doc.querySelectorAll("li,article,[class*='artist'],[class*='act'],[class*='performer'],[class*='item'],[class*='card'],a,p,div,span").forEach(el => {
-    const tekst = el.textContent?.replace(/\n\s*\n/g,"\n").trim();
-    if (!tekst || tekst.length > 300) return;
-    const p = parseerRegel(tekst);
-    if (!p) return;
-    const key = p.dagSleutel+"|"+p.tijd+"|"+p.naam;
-    if (gezien.has(key)) return;
-    gezien.add(key);
+  var isMHTML = /^MIME-Version:/im.test(inhoud) || /^Content-Type:\s*multipart/im.test(inhoud);
+  var html = isMHTML ? decodeerMHTML(inhoud) : inhoud;
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(html, "text/html");
+  var artiesten = [], gezien = {};
+  var els = doc.querySelectorAll("li,article,a,p,div,span");
+  for (var i = 0; i < els.length; i++) {
+    var tekst = els[i].textContent ? els[i].textContent.replace(/\n\s*\n/g,"\n").trim() : "";
+    if (!tekst || tekst.length > 300) continue;
+    var p = parseerRegel(tekst);
+    if (!p) continue;
+    var key = p.dagSleutel+"|"+p.tijd+"|"+p.naam;
+    if (gezien[key]) continue;
+    gezien[key] = true;
     if (!isRommel(p.naam)) artiesten.push(p);
-  });
-  const bestaandMap = {};
-  if (bestaandeData) {
-    bestaandeData.dagen.forEach(d => d.artiesten.forEach(a => {
-      bestaandMap[a.dagSleutel+"|"+a.tijd+"|"+a.naam] = a;
-    }));
   }
-  const groepen = {};
-  DAGEN_KEYS.forEach(d => groepen[d] = []);
-  artiesten.forEach(a => {
-    const key = a.dagSleutel+"|"+a.tijd+"|"+a.naam;
-    if (bestaandMap[key]) { a.beoordeling = bestaandMap[key].beoordeling; a.notitie = bestaandMap[key].notitie; }
-    if (groepen[a.dagSleutel]) groepen[a.dagSleutel].push(a);
-  });
-  DAGEN_KEYS.forEach(d => groepen[d].sort((a,b) => a.tijd.localeCompare(b.tijd)));
-  const now = new Date().toISOString();
+  var bestaandMap = {};
+  if (bestaandeData) {
+    for (var d = 0; d < bestaandeData.dagen.length; d++) {
+      for (var a = 0; a < bestaandeData.dagen[d].artiesten.length; a++) {
+        var art = bestaandeData.dagen[d].artiesten[a];
+        bestaandMap[art.dagSleutel+"|"+art.tijd+"|"+art.naam] = art;
+      }
+    }
+  }
+  var groepen = { vrijdag:[], zaterdag:[], zondag:[] };
+  for (var i = 0; i < artiesten.length; i++) {
+    var art = artiesten[i];
+    var k = art.dagSleutel+"|"+art.tijd+"|"+art.naam;
+    if (bestaandMap[k]) { art.beoordeling = bestaandMap[k].beoordeling; art.notitie = bestaandMap[k].notitie; }
+    if (groepen[art.dagSleutel]) groepen[art.dagSleutel].push(art);
+  }
+  DAGEN_KEYS.forEach(function(d) { groepen[d].sort(function(a,b) { return a.tijd < b.tijd ? -1 : a.tijd > b.tijd ? 1 : 0; }); });
+  var now = new Date().toISOString();
   return {
     festival: "Pinkpop 2026",
-    ingeladenOp: bestaandeData?.ingeladenOp || now,
+    ingeladenOp: bestaandeData ? bestaandeData.ingeladenOp : now,
     bijgewerktOp: now,
-    dagen: DAGEN_KEYS.map(d => ({ dag: d[0].toUpperCase()+d.slice(1), artiesten: groepen[d] })).filter(d => d.artiesten.length > 0)
+    dagen: DAGEN_KEYS.map(function(d) {
+      return { dag: d[0].toUpperCase()+d.slice(1), artiesten: groepen[d] };
+    }).filter(function(d) { return d.artiesten.length > 0; })
   };
 }
 
-// ── Weer ─────────────────────────────────────────────────────────────────────
+// ── Weer ──────────────────────────────────────────────────────────────────────
 var weerData = {};
 
 function haalWeerOp() {
-  var url = "https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date=2026-06-19&end_date=2026-06-21";
-  fetch(url)
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date=2026-06-19&end_date=2026-06-21")
     .then(function(r) { return r.json(); })
     .then(function(json) {
       var times = json.hourly.time;
@@ -228,13 +233,13 @@ function haalWeerOp() {
       for (var i = 0; i < times.length; i++) {
         weerData[times[i]] = { precipitation: precip[i], cloudcover: cloud[i] };
       }
-      renderTimetable();
+      if (data) renderTimetable();
     })
     .catch(function() {});
 }
 
 function berekenWeer(dagSleutel, tijd) {
-  var dagMap = { "vrijdag": "2026-06-19", "zaterdag": "2026-06-20", "zondag": "2026-06-21" };
+  var dagMap = { "vrijdag":"2026-06-19", "zaterdag":"2026-06-20", "zondag":"2026-06-21" };
   var datum = dagMap[dagSleutel];
   if (!datum) return null;
   var delen = tijd.split("–");
@@ -245,8 +250,8 @@ function berekenWeer(dagSleutel, tijd) {
   var totalePrecip = 0, totalCloud = 0, count = 0;
   for (var u = beginUur; u <= eindUur; u++) {
     var uur = u % 24;
-    var dagDatum = u >= 24 ? verschuifDag(datum) : datum;
-    var key = dagDatum + "T" + String(uur).padStart(2,"0") + ":00";
+    var dagStr = u >= 24 ? verschuifDag(datum) : datum;
+    var key = dagStr + "T" + (uur < 10 ? "0" : "") + uur + ":00";
     if (weerData[key] !== undefined) {
       totalePrecip += weerData[key].precipitation;
       totalCloud   += weerData[key].cloudcover;
@@ -268,20 +273,18 @@ function verschuifDag(datum) {
 }
 
 function maakWeerIcoon(type) {
-  if (type === "zon")     return document.createTextNode("☀️");
-  if (type === "bewolkt") return document.createTextNode("⛅");
-  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.style.cursor = "pointer";
-  svg.style.display = "inline-block";
-  svg.style.verticalAlign = "middle";
+  if (type === "zon")     { var s = document.createElement("span"); s.textContent = "☀️"; s.style.fontSize = "16px"; return s; }
+  if (type === "bewolkt") { var s = document.createElement("span"); s.textContent = "⛅"; s.style.fontSize = "16px"; return s; }
+  var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.style.display = "inline-block"; svg.style.verticalAlign = "middle";
   if (type === "licht") {
-    svg.setAttribute("width","18"); svg.setAttribute("height","20"); svg.setAttribute("viewBox","0 0 18 20");
+    svg.setAttribute("width","16"); svg.setAttribute("height","18"); svg.setAttribute("viewBox","0 0 18 20");
     var path = document.createElementNS("http://www.w3.org/2000/svg","path");
     path.setAttribute("d","M9 1 C9 1 2 9 2 13.5 C2 17.09 5.13 20 9 20 C12.87 20 16 17.09 16 13.5 C16 9 9 1 9 1Z");
     path.setAttribute("fill","#4a90e8");
     svg.appendChild(path);
   } else {
-    svg.setAttribute("width","26"); svg.setAttribute("height","20"); svg.setAttribute("viewBox","0 0 26 20");
+    svg.setAttribute("width","24"); svg.setAttribute("height","18"); svg.setAttribute("viewBox","0 0 26 20");
     var p1 = document.createElementNS("http://www.w3.org/2000/svg","path");
     p1.setAttribute("d","M8 1 C8 1 2 8.5 2 12.5 C2 15.81 4.69 18.5 8 18.5 C11.31 18.5 14 15.81 14 12.5 C14 8.5 8 1 8 1Z");
     p1.setAttribute("fill","#4a90e8"); p1.setAttribute("opacity","0.55");
@@ -294,102 +297,94 @@ function maakWeerIcoon(type) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
-const LS_DATA_KEY = "pinkpop_data";
-const LS_DARK_KEY = "pinkpop_dark";
+var PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
+var LS_DATA_KEY = "pinkpop_data";
+var LS_DARK_KEY = "pinkpop_dark";
 
 function fmtDatum(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("nl-NL", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
 }
-function ddmmyyyy(d = new Date()) {
-  return String(d.getDate()).padStart(2,"0") + String(d.getMonth()+1).padStart(2,"0") + d.getFullYear();
+function ddmmyyyy(d) {
+  d = d || new Date();
+  return ("0"+d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2) + d.getFullYear();
 }
 function isPinkpopplanner(naam) { return /^Pinkpopplanner-ingeladen-\d{8}/.test(naam); }
-
-function slaOpInStorage() {
-  try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) { console.warn("localStorage fout:", e); }
-}
-
+function slaOpInStorage() { try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) {} }
 function downloadJson(naam) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = naam || "pinkpop-backup.json";
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url; a.download = naam || "pinkpop-backup.json";
   document.body.appendChild(a); a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0, filterWoord = "";
-let sortKolom = "tijd", sortRichting = "asc", darkMode = false;
+var data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0, filterWoord = "";
+var sortKolom = "tijd", sortRichting = "asc", darkMode = false;
 
 // ── UI refs ───────────────────────────────────────────────────────────────────
-const $empty      = document.getElementById("empty");
-const $main       = document.getElementById("main");
-const $fout       = document.getElementById("fout");
-const $tabs       = document.getElementById("tabs");
-const $body       = document.getElementById("timetable-body");
-const $banner     = document.getElementById("save-banner");
-const $btnBannerB = document.getElementById("btn-banner-bewaar");
-const $btnExport  = document.getElementById("btn-export");
-const $btnDark    = document.getElementById("btn-dark");
-const $metaIn     = document.getElementById("meta-ingeladen");
-const $metaBij    = document.getElementById("meta-bijgewerkt");
-const $lastHint   = document.getElementById("last-hint");
-const $lastNaam   = document.getElementById("last-naam");
-const $loadLastNaam = document.getElementById("load-last-naam");
-const $filterBalk = document.getElementById("filter-balk");
-const $filterRij2 = document.getElementById("filter-rij2");
+var $empty      = document.getElementById("empty");
+var $main       = document.getElementById("main");
+var $fout       = document.getElementById("fout");
+var $tabs       = document.getElementById("tabs");
+var $body       = document.getElementById("timetable-body");
+var $banner     = document.getElementById("save-banner");
+var $btnBannerB = document.getElementById("btn-banner-bewaar");
+var $btnExport  = document.getElementById("btn-export");
+var $btnDark    = document.getElementById("btn-dark");
+var $metaIn     = document.getElementById("meta-ingeladen");
+var $metaBij    = document.getElementById("meta-bijgewerkt");
+var $lastHint   = document.getElementById("last-hint");
+var $lastNaam   = document.getElementById("last-naam");
+var $loadLastNaam = document.getElementById("load-last-naam");
+var $filterBalk = document.getElementById("filter-balk");
+var $filterRij2 = document.getElementById("filter-rij2");
 
-// ── Init: herstel uit localStorage ────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 darkMode = localStorage.getItem(LS_DARK_KEY) === "true";
 if (darkMode) { document.body.className = "dark"; $btnDark.textContent = "☀️"; }
-
 haalWeerOp();
-
-const opgeslagen = localStorage.getItem(LS_DATA_KEY);
+var opgeslagen = localStorage.getItem(LS_DATA_KEY);
 if (opgeslagen) {
-  try {
-    const json = JSON.parse(opgeslagen);
-    if (json.dagen) laadData(json, null);
-  } catch(e) {}
+  try { var json = JSON.parse(opgeslagen); if (json && json.dagen) laadData(json, false); } catch(e) {}
 }
 
 // ── Bestand verwerken ─────────────────────────────────────────────────────────
 function verwerkBestand(file) {
   $fout.style.display = "none";
-  const isJson = file.name.endsWith(".json");
-  const reader = new FileReader();
-  reader.onload = ev => {
+  var isJson = file.name.endsWith(".json");
+  var reader = new FileReader();
+  reader.onload = function(ev) {
     try {
       if (isJson) {
-        const json = JSON.parse(ev.target.result);
-        if (!json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
-        laadData(json, null);
+        var json = JSON.parse(ev.target.result);
+        if (!json || !json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
+        laadData(json, false);
         slaOpInStorage();
       } else {
-        const json = parseTimetable(ev.target.result, data);
-        if (!json.dagen.length) throw new Error("Geen artiesten gevonden. Ondersteunde formaten: .html, .mht, .mhtml");
+        var json = parseTimetable(ev.target.result, data);
+        if (!json.dagen.length) throw new Error("Geen artiesten gevonden.");
         laadData(json, true);
         slaOpInStorage();
       }
     } catch(e) { $fout.style.display = "block"; $fout.textContent = e.message; }
   };
-  reader.onerror = () => { $fout.style.display = "block"; $fout.textContent = "Fout bij inlezen."; };
+  reader.onerror = function() { $fout.style.display = "block"; $fout.textContent = "Fout bij inlezen."; };
   reader.readAsText(file);
 }
 
-["file-input","file-last","file-nieuw"].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener("change", e => { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
+["file-input","file-last","file-nieuw"].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener("change", function(e) { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
 });
 
 // ── Laad data ─────────────────────────────────────────────────────────────────
 function laadData(json, toonBanner) {
   data = json;
   actieveDag = 0;
-  filterMin = 0; filterWoord = "";
+  filterMin = 0;
+  filterWoord = "";
   opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
   $empty.style.display = "none";
   $main.style.display = "block";
@@ -400,7 +395,7 @@ function laadData(json, toonBanner) {
   renderTimetable();
 }
 
-// ── Render functies ───────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 function renderHeader() {
   $metaIn.textContent  = "Festival programma ingeladen op " + fmtDatum(data.ingeladenOp);
   $metaBij.textContent = "Laatst bijgewerkt op " + fmtDatum(data.bijgewerktOp);
@@ -416,7 +411,6 @@ function renderFilter() {
   lbl.style.cssText = "font-size:12px; color:var(--text-sec);";
   lbl.textContent = "Toon minimaal";
   $filterBalk.appendChild(lbl);
-
   var balk = document.createElement("div");
   balk.className = "filter-ster-balk";
   for (var s = 1; s <= 5; s++) {
@@ -434,152 +428,144 @@ function renderFilter() {
   }
   $filterBalk.appendChild(balk);
 
-  var sep = document.createElement("span");
-  sep.style.cssText = "font-size:12px; color:var(--text-sec);";
-  sep.textContent = "Commentaar bevat";
   $filterRij2.innerHTML = "";
-  $filterRij2.appendChild(sep);
-
+  var lbl2 = document.createElement("span");
+  lbl2.style.cssText = "font-size:12px; color:var(--text-sec);";
+  lbl2.textContent = "Commentaar bevat";
+  $filterRij2.appendChild(lbl2);
   var zoek = document.createElement("input");
-  zoek.type = "text";
-  zoek.className = "filter-zoek";
-  zoek.placeholder = "Zoekwoord...";
-  zoek.value = filterWoord;
-  zoek.addEventListener("blur", function() {
-    filterWoord = zoek.value.trim().toLowerCase();
-    renderTimetable();
-  });
+  zoek.type = "text"; zoek.className = "filter-zoek";
+  zoek.placeholder = "Zoekwoord..."; zoek.value = filterWoord;
+  zoek.addEventListener("blur", function() { filterWoord = zoek.value.trim().toLowerCase(); renderTimetable(); });
   zoek.addEventListener("keydown", function(e) { if (e.key === "Enter") zoek.blur(); });
   $filterRij2.appendChild(zoek);
 }
 
 function renderTabs() {
   $tabs.innerHTML = "";
-  data.dagen.forEach(function(d, i) {
-    var btn = document.createElement("button");
-    btn.className = "tab" + (i === actieveDag ? " active" : "");
-    btn.innerHTML = d.dag + ' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
-    btn.addEventListener("click", function() { actieveDag = i; renderTabs(); renderTimetable(); });
-    $tabs.appendChild(btn);
-  });
-}
-
-function gesorteerdeArtiesten() {
-  return data.dagen[actieveDag].artiesten
-    .filter(function(a) {
-      var heeftSter = filterMin > 0;
-      var heeftWoord = filterWoord !== "";
-      if (!heeftSter && !heeftWoord) return true;
-      var sterOk = heeftSter && (a.beoordeling || 0) >= filterMin;
-      var woordOk = heeftWoord && (a.notitie || "").toLowerCase().indexOf(filterWoord) !== -1;
-      if (heeftSter && heeftWoord) return sterOk || woordOk;
-      return heeftSter ? sterOk : woordOk;
-    })
-    .slice()
-    .sort(function(a, b) {
-      var va, vb;
-      if (sortKolom === "tijd")        { va = a.tijd;    vb = b.tijd; }
-      else if (sortKolom === "podium") { va = a.podium;  vb = b.podium; }
-      else                             { va = a.beoordeling || 0; vb = b.beoordeling || 0; }
-      if (va < vb) return sortRichting === "asc" ? -1 : 1;
-      if (va > vb) return sortRichting === "asc" ?  1 : -1;
-      return 0;
-    });
+  for (var i = 0; i < data.dagen.length; i++) {
+    (function(i) {
+      var d = data.dagen[i];
+      var btn = document.createElement("button");
+      btn.className = "tab" + (i === actieveDag ? " active" : "");
+      btn.innerHTML = d.dag + ' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
+      btn.addEventListener("click", function() { actieveDag = i; renderTabs(); renderTimetable(); });
+      $tabs.appendChild(btn);
+    })(i);
+  }
 }
 
 function renderTimetable() {
   $body.innerHTML = "";
   ["tijd","podium","beoordeling"].forEach(function(k) {
     var ic = document.getElementById("icon-"+k);
+    if (!ic) return;
     ic.textContent = sortKolom === k ? (sortRichting === "asc" ? "↑" : "↓") : "↕";
     ic.style.opacity = sortKolom === k ? "1" : "0.3";
   });
 
-  gesorteerdeArtiesten().forEach(function(artiest) {
-    var dag = data.dagen[actieveDag];
-    var artIdx = dag.artiesten.indexOf(artiest);
-    var kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
-
-    var row = document.createElement("div"); row.className = "row";
-
-    var tijd = document.createElement("span"); tijd.className = "tijd col-tijd"; tijd.textContent = artiest.tijd;
-
-    var podiumWrap = document.createElement("span");
-    podiumWrap.style.cssText = "display:flex; align-items:center; gap:5px; min-width:80px;";
-    podiumWrap.appendChild(badge);
-
-    var weerType = berekenWeer(artiest.dagSleutel, artiest.tijd);
-    if (weerType) {
-      var icoon = maakWeerIcoon(weerType);
-      var link = document.createElement("a");
-      link.href = "https://www.buienradar.nl/weer/landgraaf/nl/2751827";
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.style.cssText = "display:inline-flex; align-items:center; text-decoration:none; font-size:16px; line-height:1;";
-      link.title = weerType === "zon" ? "Zonnig" : weerType === "bewolkt" ? "Bewolkt, geen regen" : weerType === "licht" ? "Lichte regen" : "Flinke regen";
-      link.appendChild(icoon);
-      podiumWrap.appendChild(link);
-    }
-
-    var naam = document.createElement("a"); naam.className = "naam-link col-naam";
-    naam.textContent = artiest.naam;
-    naam.href = "https://open.spotify.com/search/" + encodeURIComponent(artiest.naam);
-    naam.target = "_blank"; naam.rel = "noopener noreferrer";
-
-    var sterren = document.createElement("div"); sterren.className = "sterren col-ster";
-    for (var s = 1; s <= 5; s++) {
-      (function(s) {
-        var ster = document.createElement("span");
-        ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
-        ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
-        ster.addEventListener("click", function() {
-          dag.artiesten[artIdx].beoordeling = artiest.beoordeling === s ? null : s;
-          data.bijgewerktOp = new Date().toISOString();
-          slaOpInStorage();
-          renderHeader();
-          renderTimetable();
-        });
-        sterren.appendChild(ster);
-      })(s);
-    }
-
-    var notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
-    var notitieSpan = document.createElement("span");
-    notitieSpan.className = "notitie-tekst" + (artiest.notitie ? "" : " leeg");
-    notitieSpan.textContent = artiest.notitie || "Notitie...";
-    var notitieInput = document.createElement("input");
-    notitieInput.type = "text"; notitieInput.className = "notitie-input";
-    notitieInput.maxLength = 35; notitieInput.value = artiest.notitie;
-    notitieInput.style.display = "none";
-    notitieSpan.addEventListener("click", function() {
-      notitieSpan.style.display = "none";
-      notitieInput.style.display = "block";
-      notitieInput.focus();
-    });
-    notitieInput.addEventListener("blur", function() {
-      dag.artiesten[artIdx].notitie = notitieInput.value;
-      data.bijgewerktOp = new Date().toISOString();
-      slaOpInStorage();
-      renderHeader();
-      notitieSpan.textContent = notitieInput.value || "Notitie...";
-      notitieSpan.className = "notitie-tekst" + (notitieInput.value ? "" : " leeg");
-      notitieInput.style.display = "none";
-      notitieSpan.style.display = "";
-    });
-    notitieInput.addEventListener("keydown", function(e) { if (e.key === "Enter") notitieInput.blur(); });
-    notitieWrap.append(notitieSpan, notitieInput);
-
-    row.append(tijd, podiumWrap, naam, sterren, notitieWrap);
-    $body.appendChild(row);
+  var dag = data.dagen[actieveDag];
+  var indices = [];
+  for (var i = 0; i < dag.artiesten.length; i++) {
+    var a = dag.artiesten[i];
+    var heeftSter = filterMin > 0;
+    var heeftWoord = filterWoord !== "";
+    var toon;
+    if (!heeftSter && !heeftWoord) toon = true;
+    else if (heeftSter && heeftWoord) toon = (a.beoordeling||0) >= filterMin || (a.notitie||"").toLowerCase().indexOf(filterWoord) !== -1;
+    else if (heeftSter) toon = (a.beoordeling||0) >= filterMin;
+    else toon = (a.notitie||"").toLowerCase().indexOf(filterWoord) !== -1;
+    if (toon) indices.push(i);
+  }
+  indices.sort(function(ia, ib) {
+    var a = dag.artiesten[ia], b = dag.artiesten[ib];
+    var va, vb;
+    if (sortKolom === "tijd")        { va = a.tijd;   vb = b.tijd; }
+    else if (sortKolom === "podium") { va = a.podium; vb = b.podium; }
+    else                             { va = a.beoordeling||0; vb = b.beoordeling||0; }
+    if (va < vb) return sortRichting === "asc" ? -1 : 1;
+    if (va > vb) return sortRichting === "asc" ?  1 : -1;
+    return 0;
   });
+
+  for (var ii = 0; ii < indices.length; ii++) {
+    (function(artIdx) {
+      var artiest = dag.artiesten[artIdx];
+      var kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
+
+      var row = document.createElement("div"); row.className = "row";
+
+      var tijd = document.createElement("span"); tijd.className = "col-tijd tijd"; tijd.textContent = artiest.tijd;
+
+      var badge = document.createElement("span"); badge.className = "podium-badge";
+      badge.style.background = kleur+"33"; badge.style.color = kleur; badge.textContent = artiest.podium;
+
+      var podiumWrap = document.createElement("span"); podiumWrap.className = "col-podium";
+      podiumWrap.appendChild(badge);
+
+      var weerType = berekenWeer(artiest.dagSleutel, artiest.tijd);
+      if (weerType) {
+        var icoon = maakWeerIcoon(weerType);
+        var wlink = document.createElement("a");
+        wlink.href = "https://www.buienradar.nl/weer/landgraaf/nl/2751827";
+        wlink.target = "_blank"; wlink.rel = "noopener noreferrer";
+        wlink.style.cssText = "display:inline-flex;align-items:center;text-decoration:none;line-height:1;";
+        wlink.title = weerType === "zon" ? "Zonnig" : weerType === "bewolkt" ? "Bewolkt" : weerType === "licht" ? "Lichte regen" : "Flinke regen";
+        wlink.appendChild(icoon);
+        podiumWrap.appendChild(wlink);
+      }
+
+      var naam = document.createElement("a"); naam.className = "naam-link col-naam";
+      naam.textContent = artiest.naam;
+      naam.href = "https://open.spotify.com/search/" + encodeURIComponent(artiest.naam);
+      naam.target = "_blank"; naam.rel = "noopener noreferrer";
+
+      var sterren = document.createElement("div"); sterren.className = "sterren col-ster";
+      for (var s = 1; s <= 5; s++) {
+        (function(s) {
+          var ster = document.createElement("span");
+          ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
+          ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
+          ster.addEventListener("click", function() {
+            dag.artiesten[artIdx].beoordeling = dag.artiesten[artIdx].beoordeling === s ? null : s;
+            data.bijgewerktOp = new Date().toISOString();
+            slaOpInStorage(); renderHeader(); renderTimetable();
+          });
+          sterren.appendChild(ster);
+        })(s);
+      }
+
+      var notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
+      var notitieSpan = document.createElement("span");
+      notitieSpan.className = "notitie-tekst" + (artiest.notitie ? "" : " leeg");
+      notitieSpan.textContent = artiest.notitie || "Notitie...";
+      var notitieInput = document.createElement("input");
+      notitieInput.type = "text"; notitieInput.className = "notitie-input";
+      notitieInput.maxLength = 35; notitieInput.value = artiest.notitie;
+      notitieInput.style.display = "none";
+      notitieSpan.addEventListener("click", function() {
+        notitieSpan.style.display = "none"; notitieInput.style.display = "block"; notitieInput.focus();
+      });
+      notitieInput.addEventListener("blur", function() {
+        dag.artiesten[artIdx].notitie = notitieInput.value;
+        data.bijgewerktOp = new Date().toISOString();
+        slaOpInStorage(); renderHeader();
+        notitieSpan.textContent = notitieInput.value || "Notitie...";
+        notitieSpan.className = "notitie-tekst" + (notitieInput.value ? "" : " leeg");
+        notitieInput.style.display = "none"; notitieSpan.style.display = "";
+      });
+      notitieInput.addEventListener("keydown", function(e) { if (e.key === "Enter") notitieInput.blur(); });
+      notitieWrap.appendChild(notitieSpan); notitieWrap.appendChild(notitieInput);
+
+      row.appendChild(tijd); row.appendChild(podiumWrap); row.appendChild(naam);
+      row.appendChild(sterren); row.appendChild(notitieWrap);
+      $body.appendChild(row);
+    })(indices[ii]);
+  }
 }
 
 // ── Knoppen ───────────────────────────────────────────────────────────────────
-$btnBannerB.addEventListener("click", function() {
-  slaOpInStorage();
-  opslaanNaam = null;
-  renderBanner();
-});
+$btnBannerB.addEventListener("click", function() { slaOpInStorage(); opslaanNaam = null; renderBanner(); });
 
 $btnExport.addEventListener("click", function() {
   downloadJson("Pinkpopplanner-backup-" + ddmmyyyy() + ".json");
