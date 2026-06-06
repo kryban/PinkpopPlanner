@@ -12,613 +12,439 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
-    body.light { background: #fff; color: #1a1a1a; --bg: #fff; --bg-sec: #f5f5f5; --bg-head: #efefef; --text: #1a1a1a; --text-sec: #666; --border: #e0e0e0; }
-    body.dark  { background: #1a1a1a; color: #f0f0f0; --bg: #1a1a1a; --bg-sec: #252525; --bg-head: #2a2a2a; --text: #f0f0f0; --text-sec: #999; --border: #383838; }
+    body.light { background: #fff; color: #1a1a1a; --bg: #fff; --bg-sec: #f5f5f5; --bg-head: #efefef; --text: #1a1a1a; --text-sec: #666; --border: #e0e0e0; --accent: #e8534a; }
+    body.dark  { background: #1a1a1a; color: #f0f0f0; --bg: #1a1a1a; --bg-sec: #252525; --bg-head: #2a2a2a; --text: #f0f0f0; --text-sec: #999; --border: #383838; --accent: #e8534a; }
     h1 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
     button, label.btn { font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s, color 0.15s; font-family: inherit; }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    button:not(:disabled):active, label.btn:active { background: #e8534a; color: #fff; }
-    input[type=text]:focus { outline: none; border-color: #e8534a; }
+    button:not(:disabled):active, label.btn:active { background: var(--accent); color: #fff; }
+    input[type=text]:focus { outline: none; border-color: var(--accent); }
     #app { max-width: 750px; margin: 0 auto; padding: 1rem; }
-    #empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 2rem; text-align: center; }
-    #empty .emoji { font-size: 48px; }
-    #last-hint { background: var(--bg-sec); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 20px; max-width: 380px; width: 100%; }
-    #last-hint p { font-size: 13px; color: var(--text-sec); margin-bottom: 8px; }
-    #last-hint strong { font-family: monospace; font-size: 13px; display: block; margin-bottom: 12px; }
-    #save-banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fff8e1; border: 1px solid #f5c518; color: #7a6000; font-size: 13px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    #save-banner button { background: #f5c518; color: #7a6000; border: none; }
-    #save-banner button:active { background: #e6b800; color: #7a6000; }
     #header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
     #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
     #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    #btn-export.saved { background: #27ae60; color: #fff; }
     #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     #filter-rij2 { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-ster-balk { display: flex; gap: 2px; align-items: center; }
-    .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
+    .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; }
     .filter-ster-balk .ster.vol { color: #f5c518; }
     .filter-zoek { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-family: inherit; width: 130px; }
-    .filter-zoek:focus { outline: none; border-color: #e8534a; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
     .tab { font-size: 13px; padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-weight: 400; cursor: pointer; font-family: inherit; }
-    .tab.active { background: #e8534a; color: #fff; font-weight: 700; border-color: #e8534a; }
+    .tab.active { background: var(--accent); color: #fff; font-weight: 700; border-color: var(--accent); }
     #timetable { border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
     #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
-    .col-tijd    { min-width: 85px; flex-shrink: 0; }
-    .col-podium  { min-width: 90px; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
-    .col-naam    { flex: 1; min-width: 80px; }
-    .col-ster    { min-width: 110px; flex-shrink: 0; }
+    .col-tijd   { min-width: 85px; flex-shrink: 0; }
+    .col-podium { min-width: 90px; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+    .col-naam   { flex: 1; min-width: 80px; }
+    .col-ster   { min-width: 110px; flex-shrink: 0; }
     .col-notitie { flex: 1; min-width: 80px; }
-    .row-sub     { display: flex; align-items: center; gap: 10px; width: 100%; padding-top: 4px; }
-    .sortable    { cursor: pointer; user-select: none; }
-    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+    .sortable { cursor: pointer; user-select: none; }
+    .row { padding: 8px 12px; border-bottom: 0.5px solid var(--border); }
     .row:last-child { border-bottom: none; }
+    .row-rij { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .row-rij + .row-rij { padding-top: 4px; }
     .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); }
     .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; text-align: center; white-space: nowrap; }
-    .naam-link { font-weight: 600; font-size: 13px; flex: 1; color: var(--text); text-decoration: none; }
+    .naam-link { font-weight: 600; font-size: 13px; color: var(--text); text-decoration: none; display: block; width: 100%; }
     .naam-link:hover { color: #1db954; }
     .sterren { display: flex; gap: 2px; }
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .ster.vol { color: #f5c518; }
     .ster:hover { color: #f5c518; }
-    .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; padding: 4px 0; border-bottom: 1px dashed transparent; }
+    .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; padding: 4px 0; border-bottom: 1px dashed transparent; flex: 1; }
     .notitie-tekst:hover { border-bottom-color: var(--border); }
     .notitie-tekst.leeg { color: var(--border); font-style: italic; }
-    .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid #e8534a; background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
+    .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--accent); background: var(--bg-sec); color: var(--text); flex: 1; font-family: inherit; }
     .versie { margin-top: 24px; text-align: center; font-size: 11px; color: #888; }
   </style>
 </head>
 <body class="light">
 <div id="app">
-
-  <div id="empty">
-    <div class="emoji">🎪</div>
-    <h1>Pinkpop 2026</h1>
-    <div id="last-hint" style="display:none">
-      <p>Je had eerder dit bestand geladen:</p>
-      <strong id="last-naam"></strong>
-      <label class="btn" style="justify-content:center; width:100%; font-size:13px; padding:10px; background:#e8534a; color:#fff; border:none;">
-        📂 Laad <span id="load-last-naam"></span>
-        <input type="file" id="file-last" accept=".json,.html,.htm,.mht,.mhtml" style="display:none" />
+  <div id="header">
+    <div id="header-meta">
+      <h1>🎪 Pinkpop 2026</h1>
+      <p id="meta-bijgewerkt"></p>
+    </div>
+    <div id="header-actions">
+      <button id="btn-dark">🌙</button>
+      <button id="btn-export">📤 Exporteer</button>
+      <label class="btn" id="lbl-import">
+        📥 Importeer
+        <input type="file" id="file-import" accept=".json" style="display:none" />
       </label>
+      <!-- TESTKNOP - verwijderen na testen -->
+      <button id="btn-testweer">🌦 Testweer</button>
     </div>
-    <p style="font-size:13px; color:var(--text-sec); max-width:360px">
-      Laad de opgeslagen <a href="https://www.pinkpop.nl/programma/" target="_blank" style="color:#e8534a;">Pinkpop programmapagina</a> (.html / .mht) of een eerder opgeslagen planner (.json).
-    </p>
-    <label class="btn" style="font-size:13px; padding:10px 20px; justify-content:center;">
-      📂 Kies bestand (.html / .mht / .json)
-      <input type="file" id="file-input" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
-    </label>
-    <div id="fout" style="display:none; padding:10px 16px; border-radius:8px; background:#fde8e8; color:#c0392b; font-size:13px;"></div>
   </div>
-
-  <div id="main" style="display:none">
-    <div id="save-banner">
-      <span>💾 Nieuw programma geladen — druk op Bewaar om op te slaan.</span>
-      <button id="btn-banner-bewaar">💾 Bewaar</button>
+  <div id="filter-balk"></div>
+  <div id="filter-rij2"></div>
+  <div id="tabs"></div>
+  <div id="timetable">
+    <div id="timetable-header">
+      <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
+      <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
+      <span class="col-naam"></span>
     </div>
-    <div id="header">
-      <div id="header-meta">
-        <h1>🎪 Pinkpop 2026</h1>
-        <p id="meta-ingeladen"></p>
-        <p id="meta-bijgewerkt"></p>
-      </div>
-      <div id="header-actions">
-        <button id="btn-dark" title="Wissel licht/donker modus">🌙</button>
-        <label class="btn">
-          📂 Nieuw bestand
-          <input type="file" id="file-nieuw" accept=".html,.htm,.mht,.mhtml,.json" style="display:none" />
-        </label>
-        <button id="btn-export">📤 Exporteer</button>
-        <!-- TESTKNOP - verwijderen na testen -->
-        <button id="btn-testweer" onclick="toggleTestWeer()" style="background:var(--bg-sec); color:var(--text-sec); border:0.5px solid var(--border);">🌦 Testweer</button>
-      </div>
-    </div>
-    <div id="filter-balk"></div>
-    <div id="filter-rij2"></div>
-    <div id="tabs"></div>
-    <div id="timetable">
-      <div id="timetable-header">
-        <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
-        <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
-        <span class="col-naam"></span>
-      </div>
-      <div id="timetable-body"></div>
-    </div>
-    <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-    <div class="versie">v1.1.2</div>
+    <div id="timetable-body"></div>
   </div>
+  <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
+  <div class="versie">v2.0.0</div>
 </div>
-
 <script>
-// ── Parser ────────────────────────────────────────────────────────────────────
-var DAGEN_KEYS = ["vrijdag","zaterdag","zondag"];
-var ROMMEL = ["nl","en","nl  en","tickets","programma","timetable","faq","nieuws","verblijf","vervoer","merchandise","pinkplanner","festivalterrein","over ons","wijnrestaurant"];
-
-function isRommel(s) {
-  var l = s.toLowerCase().trim();
-  return ROMMEL.indexOf(l) !== -1 || l.length < 2
-    || l.indexOf("silent disco") === 0 || l.indexOf("feesttent") === 0
-    || l.indexOf("feestplein") === 0 || l.indexOf("sun scream") === 0;
+// ── Tijdsortering ─────────────────────────────────────────────────────────────
+function tijdSort(t) {
+  if (!t) return 0;
+  var p = t.split(":"), u = parseInt(p[0]), m = parseInt(p[1]||"0");
+  if (isNaN(u)) return 0;
+  if (u < 6) u += 24;
+  return u * 60 + m;
 }
 
-function parseerRegel(tekst) {
-  var dagMatch = tekst.match(/^(vrijdag|zaterdag|zondag)\s+\d+\s+\w+/i);
-  var tijdMatch = tekst.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  var podiumMatch = tekst.match(/\|\s*(South Stage|North Stage|Tent Stage|Stage 4)\s*/i);
-  if (!dagMatch || !tijdMatch || !podiumMatch) return null;
-  var dag = dagMatch[0].trim();
-  var tijd = tijdMatch[1] + " – " + tijdMatch[2];
-  var podium = podiumMatch[1].trim();
-  var naPodium = tekst.slice(tekst.lastIndexOf(podiumMatch[1]) + podiumMatch[1].length).replace(/\s+/g," ").trim();
-  if (!naPodium) return null;
-  var dagSleutel = dag.split(" ")[0].toLowerCase();
-  if (DAGEN_KEYS.indexOf(dagSleutel) === -1) return null;
-  return { dag: dag, dagSleutel: dagSleutel, tijd: tijd, podium: podium, naam: naPodium, beoordeling: null, notitie: "" };
-}
+// ── Statische programmering ───────────────────────────────────────────────────
+var PROG = {
+  festival: "Pinkpop 2026",
+  dagen: [
+    { dag: "Vrijdag", datum: "2026-06-19", artiesten: [
+      { naam: "Natasha Bedingfield",  podium: "South Stage", start: "14:00", einde: "15:00" },
+      { naam: "Sleep Theory",         podium: "Tent Stage",  start: "13:45", einde: "14:45" },
+      { naam: "De Herfshane Band",    podium: "Tent Stage",  start: "12:15", einde: "13:00" },
+      { naam: "Linka Moja",           podium: "Stage 4",     start: "13:00", einde: "13:45" },
+      { naam: "Isabel van Gelder",    podium: "Stage 4",     start: "14:45", einde: "15:30" },
+      { naam: "The Pretty Reckless",  podium: "North Stage", start: "15:05", einde: "16:05" },
+      { naam: "Balu Brigada",         podium: "Tent Stage",  start: "15:30", einde: "16:30" },
+      { naam: "The Vaccines",         podium: "South Stage", start: "16:10", einde: "17:10" },
+      { naam: "Buffalo Traffic Jam",  podium: "Stage 4",     start: "16:30", einde: "17:15" },
+      { naam: "Kingfishr",            podium: "North Stage", start: "17:15", einde: "18:15" },
+      { naam: "Ski Aggu",             podium: "Tent Stage",  start: "17:20", einde: "18:05" },
+      { naam: "Ecca Vandal",          podium: "Stage 4",     start: "18:05", einde: "18:50" },
+      { naam: "Roxy Dekker",          podium: "South Stage", start: "18:15", einde: "19:05" },
+      { naam: "Electric Callboy",     podium: "North Stage", start: "19:10", einde: "20:10" },
+      { naam: "The Beaches",          podium: "Tent Stage",  start: "18:50", einde: "19:50" },
+      { naam: "Yong Yello",           podium: "Stage 4",     start: "19:50", einde: "20:35" },
+      { naam: "Teddy Swims",          podium: "South Stage", start: "20:15", einde: "21:15" },
+      { naam: "The Plot in You",      podium: "Tent Stage",  start: "20:35", einde: "21:35" },
+      { naam: "Zara Larsson",         podium: "North Stage", start: "21:20", einde: "22:20" },
+      { naam: "VOILÀ",                podium: "Stage 4",     start: "21:35", einde: "22:20" },
+      { naam: "Twenty One Pilots",    podium: "South Stage", start: "22:25", einde: "00:00" },
+    ]},
+    { dag: "Zaterdag", datum: "2026-06-20", artiesten: [
+      { naam: "Hang Youth",           podium: "Tent Stage",  start: "12:00", einde: "12:45" },
+      { naam: "Giant Rooks",          podium: "North Stage", start: "12:15", einde: "13:15" },
+      { naam: "Jerub",                podium: "Stage 4",     start: "12:45", einde: "13:30" },
+      { naam: "Triggerfinger",        podium: "South Stage", start: "13:20", einde: "14:20" },
+      { naam: "HAEVN",                podium: "Tent Stage",  start: "13:30", einde: "14:30" },
+      { naam: "Lauren Spencer Smith", podium: "North Stage", start: "14:25", einde: "15:25" },
+      { naam: "Wodan Boys",           podium: "Stage 4",     start: "14:30", einde: "15:15" },
+      { naam: "Suzan & Freek",        podium: "South Stage", start: "15:30", einde: "16:30" },
+      { naam: "Jehnny Beth",          podium: "Tent Stage",  start: "15:15", einde: "16:15" },
+      { naam: "LEAP",                 podium: "Stage 4",     start: "16:15", einde: "17:00" },
+      { naam: "Sofi Tukker",          podium: "North Stage", start: "16:35", einde: "17:35" },
+      { naam: "Franz Ferdinand",      podium: "South Stage", start: "17:40", einde: "18:40" },
+      { naam: "The Haunted Youth",    podium: "Tent Stage",  start: "17:00", einde: "18:00" },
+      { naam: "Chezile",              podium: "Stage 4",     start: "18:00", einde: "18:45" },
+      { naam: "IDLES",                podium: "North Stage", start: "18:45", einde: "19:45" },
+      { naam: "Alessi Rose",          podium: "Tent Stage",  start: "18:45", einde: "19:45" },
+      { naam: "Editors",              podium: "South Stage", start: "19:50", einde: "20:50" },
+      { naam: "Thijs Boontjes",       podium: "Stage 4",     start: "19:45", einde: "20:30" },
+      { naam: "Halsey",               podium: "North Stage", start: "20:55", einde: "21:55" },
+      { naam: "Soulwax",              podium: "Tent Stage",  start: "20:30", einde: "21:30" },
+      { naam: "The Cure",             podium: "South Stage", start: "22:00", einde: "00:00" },
+    ]},
+    { dag: "Zondag", datum: "2026-06-21", artiesten: [
+      { naam: "Daði Freyr",           podium: "Tent Stage",  start: "12:00", einde: "12:45" },
+      { naam: "MY BABY",              podium: "North Stage", start: "12:00", einde: "13:00" },
+      { naam: "Leila Lamb",           podium: "Stage 4",     start: "12:45", einde: "13:30" },
+      { naam: "BENTE",                podium: "South Stage", start: "13:05", einde: "14:05" },
+      { naam: "Dogstar",              podium: "Tent Stage",  start: "13:30", einde: "14:30" },
+      { naam: "HotWax",               podium: "Stage 4",     start: "14:30", einde: "15:15" },
+      { naam: "Good Neighbours",      podium: "Tent Stage",  start: "15:15", einde: "16:15" },
+      { naam: "White Lies",           podium: "South Stage", start: "15:15", einde: "16:15" },
+      { naam: "Die Spitz",            podium: "Stage 4",     start: "16:15", einde: "17:00" },
+      { naam: "JADE",                 podium: "North Stage", start: "16:20", einde: "17:20" },
+      { naam: "Tom Morello",          podium: "Tent Stage",  start: "17:00", einde: "18:00" },
+      { naam: "Royel Otis",           podium: "South Stage", start: "17:25", einde: "18:25" },
+      { naam: "NAFT",                 podium: "Stage 4",     start: "18:00", einde: "18:45" },
+      { naam: "Wet Leg",              podium: "North Stage", start: "18:30", einde: "19:30" },
+      { naam: "Max McNown",           podium: "Tent Stage",  start: "18:45", einde: "19:45" },
+      { naam: "YUNGBLUD",             podium: "South Stage", start: "19:35", einde: "20:35" },
+      { naam: "Ben Ellis",            podium: "Stage 4",     start: "19:45", einde: "20:30" },
+      { naam: "Fat Dog",              podium: "Tent Stage",  start: "20:30", einde: "21:30" },
+      { naam: "DI-RECT",              podium: "North Stage", start: "20:40", einde: "21:55" },
+      { naam: "Sofia Camara",         podium: "Stage 4",     start: "21:30", einde: "22:15" },
+      { naam: "Foo Fighters",         podium: "South Stage", start: "22:00", einde: "00:00" },
+    ]}
+  ]
+};
 
-function decodeerMHTML(inhoud) {
-  var delen = inhoud.split(/^--/m);
-  for (var i = 0; i < delen.length; i++) {
-    var deel = delen[i];
-    if (!/Content-Type:\s*text\/html/i.test(deel)) continue;
-    var body = deel.replace(/^[\s\S]*?\r?\n\r?\n/, "");
-    var encMatch = deel.match(/Content-Transfer-Encoding:\s*(\S+)/i);
-    var encoding = encMatch ? encMatch[1].toLowerCase() : "";
-    if (encoding === "quoted-printable") return decodeQP(body);
-    if (encoding === "base64") return atob(body.replace(/\s+/g,""));
-    return body;
-  }
-  return inhoud;
-}
-
-function decodeQP(str) {
-  return str.replace(/=\r?\n/g,"").replace(/=([0-9A-Fa-f]{2})/g, function(_,hex) { return String.fromCharCode(parseInt(hex,16)); });
-}
-
-function parseTimetable(inhoud, bestaandeData) {
-  var isMHTML = /^MIME-Version:/im.test(inhoud) || /^Content-Type:\s*multipart/im.test(inhoud);
-  var html = isMHTML ? decodeerMHTML(inhoud) : inhoud;
-  var parser = new DOMParser();
-  var doc = parser.parseFromString(html, "text/html");
-  var artiesten = [], gezien = {};
-  var els = doc.querySelectorAll("li,article,a,p,div,span");
-  for (var i = 0; i < els.length; i++) {
-    var tekst = els[i].textContent ? els[i].textContent.replace(/\n\s*\n/g,"\n").trim() : "";
-    if (!tekst || tekst.length > 300) continue;
-    var p = parseerRegel(tekst);
-    if (!p) continue;
-    var key = p.dagSleutel+"|"+p.tijd+"|"+p.naam;
-    if (gezien[key]) continue;
-    gezien[key] = true;
-    if (!isRommel(p.naam)) artiesten.push(p);
-  }
-  var bestaandMap = {};
-  if (bestaandeData) {
-    for (var d = 0; d < bestaandeData.dagen.length; d++) {
-      for (var a = 0; a < bestaandeData.dagen[d].artiesten.length; a++) {
-        var art = bestaandeData.dagen[d].artiesten[a];
-        bestaandMap[art.dagSleutel+"|"+art.tijd+"|"+art.naam] = art;
+// ── Normaliseer ───────────────────────────────────────────────────────────────
+function normaliseer(raw, bestaand) {
+  var map = {};
+  if (bestaand && bestaand.dagen) {
+    for (var d = 0; d < bestaand.dagen.length; d++) {
+      for (var a = 0; a < bestaand.dagen[d].artiesten.length; a++) {
+        var x = bestaand.dagen[d].artiesten[a];
+        map[x.datum+"|"+x.start+"|"+x.naam] = x;
       }
     }
   }
-  var groepen = { vrijdag:[], zaterdag:[], zondag:[] };
-  for (var i = 0; i < artiesten.length; i++) {
-    var art = artiesten[i];
-    var k = art.dagSleutel+"|"+art.tijd+"|"+art.naam;
-    if (bestaandMap[k]) { art.beoordeling = bestaandMap[k].beoordeling; art.notitie = bestaandMap[k].notitie; }
-    if (groepen[art.dagSleutel]) groepen[art.dagSleutel].push(art);
-  }
-  DAGEN_KEYS.forEach(function(d) { groepen[d].sort(function(a,b) { return a.tijd < b.tijd ? -1 : a.tijd > b.tijd ? 1 : 0; }); });
   var now = new Date().toISOString();
-  return {
-    festival: "Pinkpop 2026",
-    ingeladenOp: bestaandeData ? bestaandeData.ingeladenOp : now,
-    bijgewerktOp: now,
-    dagen: DAGEN_KEYS.map(function(d) {
-      return { dag: d[0].toUpperCase()+d.slice(1), artiesten: groepen[d] };
-    }).filter(function(d) { return d.artiesten.length > 0; })
-  };
+  var dagen = [];
+  for (var d = 0; d < raw.dagen.length; d++) {
+    var dag = raw.dagen[d];
+    var artiesten = [];
+    for (var a = 0; a < dag.artiesten.length; a++) {
+      var art = dag.artiesten[a];
+      var key = dag.datum+"|"+art.start+"|"+art.naam;
+      var beoor = null, notitie = "";
+      if (map[key]) { beoor = map[key].beoordeling; notitie = map[key].notitie||""; }
+      artiesten.push({ datum:dag.datum, dagSleutel:dag.dag.toLowerCase(), podium:art.podium, naam:art.naam, start:art.start, einde:art.einde, beoordeling:beoor, notitie:notitie });
+    }
+    artiesten.sort(function(a,b) { return tijdSort(a.start)-tijdSort(b.start); });
+    dagen.push({ dag:dag.dag, datum:dag.datum, artiesten:artiesten });
+  }
+  return { festival:raw.festival||"Pinkpop 2026", ingeladenOp:bestaand?bestaand.ingeladenOp:now, bijgewerktOp:now, dagen:dagen };
 }
 
 // ── Weer ──────────────────────────────────────────────────────────────────────
-var weerData = {};
+var weerData = {}, testWeerActief = false;
 
-function haalWeerOp() {
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date=2026-06-19&end_date=2026-06-21")
-    .then(function(r) { return r.json(); })
-    .then(function(json) {
-      var times = json.hourly.time;
-      var precip = json.hourly.precipitation;
-      var cloud = json.hourly.cloudcover;
-      for (var i = 0; i < times.length; i++) {
-        weerData[times[i]] = { precipitation: precip[i], cloudcover: cloud[i] };
-      }
-      if (data) renderTimetable();
-    })
-    .catch(function() {});
+function haalWeerOp(dagen) {
+  var datums = [];
+  for (var i=0;i<dagen.length;i++) { if(dagen[i].datum) datums.push(dagen[i].datum); }
+  if (!datums.length) return;
+  datums.sort();
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date="+datums[0]+"&end_date="+datums[datums.length-1])
+    .then(function(r){return r.json();})
+    .then(function(json){
+      for(var i=0;i<json.hourly.time.length;i++) weerData[json.hourly.time[i]]={precipitation:json.hourly.precipitation[i],cloudcover:json.hourly.cloudcover[i]};
+      if(data) renderTimetable();
+    }).catch(function(){});
 }
-
-var testWeerActief = false;
 
 function toggleTestWeer() {
   testWeerActief = !testWeerActief;
   var btn = document.getElementById("btn-testweer");
   if (testWeerActief) {
-    var dagen = ["2026-06-19","2026-06-20","2026-06-21"];
-    var types = [
-      { precipitation: 0, cloudcover: 10 },
-      { precipitation: 0, cloudcover: 60 },
-      { precipitation: 0.8, cloudcover: 80 },
-      { precipitation: 3.5, cloudcover: 90 }
-    ];
-    for (var d = 0; d < dagen.length; d++) {
-      for (var u = 0; u < 24; u++) {
-        var key = dagen[d] + "T" + (u < 10 ? "0" : "") + u + ":00";
-        weerData[key] = types[(d * 8 + u) % 4];
-      }
-    }
-    btn.style.background = "#f5c518";
-    btn.style.color = "#7a6000";
+    var types=[{precipitation:0,cloudcover:10},{precipitation:0,cloudcover:60},{precipitation:0.8,cloudcover:80},{precipitation:3.5,cloudcover:90}];
+    var dd=["2026-06-19","2026-06-20","2026-06-21"];
+    for(var d=0;d<dd.length;d++) for(var u=0;u<24;u++) weerData[dd[d]+"T"+(u<10?"0":"")+u+":00"]=types[(d*8+u)%4];
+    btn.style.background="#f5c518"; btn.style.color="#7a6000"; btn.style.border="none";
   } else {
-    weerData = {};
-    btn.style.background = "var(--bg-sec)";
-    btn.style.color = "var(--text-sec)";
+    weerData={};
+    btn.style.background=""; btn.style.color=""; btn.style.border="";
   }
-  if (data) renderTimetable();
+  if(data) renderTimetable();
 }
 
-function berekenWeer(dagSleutel, tijd) {
-  var dagMap = { "vrijdag":"2026-06-19", "zaterdag":"2026-06-20", "zondag":"2026-06-21" };
-  var datum = dagMap[dagSleutel];
-  if (!datum) return null;
-  var delen = tijd.split("–");
-  if (delen.length < 2) return null;
-  var beginUur = parseInt(delen[0].trim().split(":")[0]);
-  var eindUur  = parseInt(delen[1].trim().split(":")[0]);
-  if (isNaN(beginUur) || isNaN(eindUur)) return null;
-  var totalePrecip = 0, totalCloud = 0, count = 0;
-  for (var u = beginUur; u <= eindUur; u++) {
-    var uur = u % 24;
-    var dagStr = u >= 24 ? verschuifDag(datum) : datum;
-    var key = dagStr + "T" + (uur < 10 ? "0" : "") + uur + ":00";
-    if (weerData[key] !== undefined) {
-      totalePrecip += weerData[key].precipitation;
-      totalCloud   += weerData[key].cloudcover;
-      count++;
-    }
+function berekenWeer(datum,start,einde) {
+  if(!datum||!start) return null;
+  var bu=parseInt(start.split(":")[0]), eu=parseInt((einde||start).split(":")[0]);
+  if(isNaN(bu)) return null;
+  if(isNaN(eu)||eu<bu) eu=bu+1;
+  var tp=0,tc=0,n=0;
+  for(var u=bu;u<=eu;u++){
+    var uu=u%24, dd=new Date(datum);
+    if(u>=24) dd.setDate(dd.getDate()+1);
+    var k=dd.toISOString().slice(0,10)+"T"+(uu<10?"0":"")+uu+":00";
+    if(weerData[k]!==undefined){tp+=weerData[k].precipitation;tc+=weerData[k].cloudcover;n++;}
   }
-  if (count === 0) return null;
-  var gemCloud = totalCloud / count;
-  if (totalePrecip === 0 && gemCloud < 30) return "zon";
-  if (totalePrecip === 0)                  return "bewolkt";
-  if (totalePrecip < 2)                    return "licht";
+  if(!n) return null;
+  if(tp===0&&tc/n<30) return "zon";
+  if(tp===0) return "bewolkt";
+  if(tp<2) return "licht";
   return "zwaar";
 }
 
-function verschuifDag(datum) {
-  var d = new Date(datum);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0,10);
-}
-
 function maakWeerIcoon(type) {
-  if (type === "zon")     { var s = document.createElement("span"); s.textContent = "☀️"; s.style.fontSize = "16px"; return s; }
-  if (type === "bewolkt") { var s = document.createElement("span"); s.textContent = "⛅"; s.style.fontSize = "16px"; return s; }
-  var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.style.display = "inline-block"; svg.style.verticalAlign = "middle";
-  if (type === "licht") {
-    svg.setAttribute("width","16"); svg.setAttribute("height","18"); svg.setAttribute("viewBox","0 0 18 20");
-    var path = document.createElementNS("http://www.w3.org/2000/svg","path");
-    path.setAttribute("d","M9 1 C9 1 2 9 2 13.5 C2 17.09 5.13 20 9 20 C12.87 20 16 17.09 16 13.5 C16 9 9 1 9 1Z");
-    path.setAttribute("fill","#4a90e8");
-    svg.appendChild(path);
+  if(type==="zon"||type==="bewolkt"){var s=document.createElement("span");s.style.fontSize="16px";s.textContent=type==="zon"?"☀️":"⛅";return s;}
+  var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="display:inline-block;vertical-align:middle;";
+  if(type==="licht"){
+    svg.setAttribute("width","16");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 18 20");
+    var p=document.createElementNS("http://www.w3.org/2000/svg","path");
+    p.setAttribute("d","M9 1C9 1 2 9 2 13.5C2 17.09 5.13 20 9 20C12.87 20 16 17.09 16 13.5C16 9 9 1 9 1Z");
+    p.setAttribute("fill","#4a90e8");svg.appendChild(p);
   } else {
-    svg.setAttribute("width","24"); svg.setAttribute("height","18"); svg.setAttribute("viewBox","0 0 26 20");
-    var p1 = document.createElementNS("http://www.w3.org/2000/svg","path");
-    p1.setAttribute("d","M8 1 C8 1 2 8.5 2 12.5 C2 15.81 4.69 18.5 8 18.5 C11.31 18.5 14 15.81 14 12.5 C14 8.5 8 1 8 1Z");
-    p1.setAttribute("fill","#4a90e8"); p1.setAttribute("opacity","0.55");
-    var p2 = document.createElementNS("http://www.w3.org/2000/svg","path");
-    p2.setAttribute("d","M18 1 C18 1 12 8.5 12 12.5 C12 15.81 14.69 18.5 18 18.5 C21.31 18.5 24 15.81 24 12.5 C24 8.5 18 1 18 1Z");
-    p2.setAttribute("fill","#4a90e8");
-    svg.appendChild(p1); svg.appendChild(p2);
+    svg.setAttribute("width","24");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 26 20");
+    var p1=document.createElementNS("http://www.w3.org/2000/svg","path");
+    p1.setAttribute("d","M8 1C8 1 2 8.5 2 12.5C2 15.81 4.69 18.5 8 18.5C11.31 18.5 14 15.81 14 12.5C14 8.5 8 1 8 1Z");
+    p1.setAttribute("fill","#4a90e8");p1.setAttribute("opacity","0.55");
+    var p2=document.createElementNS("http://www.w3.org/2000/svg","path");
+    p2.setAttribute("d","M18 1C18 1 12 8.5 12 12.5C12 15.81 14.69 18.5 18 18.5C21.31 18.5 24 15.81 24 12.5C24 8.5 18 1 18 1Z");
+    p2.setAttribute("fill","#4a90e8");svg.appendChild(p1);svg.appendChild(p2);
   }
   return svg;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-var PODIUM_KLEUREN = { "South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a" };
-var LS_DATA_KEY = "pinkpop_data";
-var LS_DARK_KEY = "pinkpop_dark";
+var PKL = {"South Stage":"#e8534a","North Stage":"#4a90e8","Tent Stage":"#7c4ae8","Stage 4":"#e8a84a"};
+var LS_D="pinkpop_data", LS_K="pinkpop_dark";
 
-function fmtDatum(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("nl-NL", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
-}
-function ddmmyyyy(d) {
-  d = d || new Date();
-  return ("0"+d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2) + d.getFullYear();
-}
-function isPinkpopplanner(naam) { return /^Pinkpopplanner-ingeladen-\d{8}/.test(naam); }
-function slaOpInStorage() { try { localStorage.setItem(LS_DATA_KEY, JSON.stringify(data)); } catch(e) {} }
-function downloadJson(naam) {
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a"); a.href = url; a.download = naam || "pinkpop-backup.json";
-  document.body.appendChild(a); a.click();
-  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
-}
+function fmtD(iso){if(!iso)return"—";return new Date(iso).toLocaleString("nl-NL",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"});}
+function ddmm(){var d=new Date();return("0"+d.getDate()).slice(-2)+("0"+(d.getMonth()+1)).slice(-2)+d.getFullYear();}
+function slaOp(){try{localStorage.setItem(LS_D,JSON.stringify(data));}catch(e){}}
+function dlJson(naam){var b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=naam;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},500);}
 
 // ── State ─────────────────────────────────────────────────────────────────────
-var data = null, actieveDag = 0, opslaanNaam = null, filterMin = 0, filterWoord = "";
-var sortKolom = "tijd", sortRichting = "asc", darkMode = false;
-
-// ── UI refs ───────────────────────────────────────────────────────────────────
-var $empty      = document.getElementById("empty");
-var $main       = document.getElementById("main");
-var $fout       = document.getElementById("fout");
-var $tabs       = document.getElementById("tabs");
-var $body       = document.getElementById("timetable-body");
-var $banner     = document.getElementById("save-banner");
-var $btnBannerB = document.getElementById("btn-banner-bewaar");
-var $btnExport  = document.getElementById("btn-export");
-var $btnDark    = document.getElementById("btn-dark");
-var $metaIn     = document.getElementById("meta-ingeladen");
-var $metaBij    = document.getElementById("meta-bijgewerkt");
-var $lastHint   = document.getElementById("last-hint");
-var $lastNaam   = document.getElementById("last-naam");
-var $loadLastNaam = document.getElementById("load-last-naam");
-var $filterBalk = document.getElementById("filter-balk");
-var $filterRij2 = document.getElementById("filter-rij2");
+var data=null, actieveDag=0, filterMin=0, filterWoord="", sortKolom="tijd", sortRichting="asc", darkMode=false;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-darkMode = localStorage.getItem(LS_DARK_KEY) === "true";
-if (darkMode) { document.body.className = "dark"; $btnDark.textContent = "☀️"; }
-haalWeerOp();
-var opgeslagen = localStorage.getItem(LS_DATA_KEY);
-if (opgeslagen) {
-  try { var json = JSON.parse(opgeslagen); if (json && json.dagen) laadData(json, false); } catch(e) {}
-}
+darkMode = localStorage.getItem(LS_K)==="true";
+if(darkMode){document.body.className="dark";document.getElementById("btn-dark").textContent="☀️";}
 
-// ── Bestand verwerken ─────────────────────────────────────────────────────────
-function verwerkBestand(file) {
-  $fout.style.display = "none";
-  var isJson = file.name.endsWith(".json");
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      if (isJson) {
-        var json = JSON.parse(ev.target.result);
-        if (!json || !json.dagen) throw new Error("Geen geldige Pinkpopplanner JSON.");
-        laadData(json, false);
-        slaOpInStorage();
-      } else {
-        var json = parseTimetable(ev.target.result, data);
-        if (!json.dagen.length) throw new Error("Geen artiesten gevonden.");
-        laadData(json, true);
-        slaOpInStorage();
-      }
-    } catch(e) { $fout.style.display = "block"; $fout.textContent = e.message; }
-  };
-  reader.onerror = function() { $fout.style.display = "block"; $fout.textContent = "Fout bij inlezen."; };
-  reader.readAsText(file);
+var opgeslagen = localStorage.getItem(LS_D);
+if(opgeslagen){
+  try{var parsed=JSON.parse(opgeslagen);if(parsed&&parsed.dagen){data=normaliseer(PROG,parsed);}}catch(e){}
 }
-
-["file-input","file-last","file-nieuw"].forEach(function(id) {
-  var el = document.getElementById(id);
-  if (el) el.addEventListener("change", function(e) { if (e.target.files[0]) verwerkBestand(e.target.files[0]); });
-});
-
-// ── Laad data ─────────────────────────────────────────────────────────────────
-function laadData(json, toonBanner) {
-  data = json;
-  actieveDag = 0;
-  filterMin = 0;
-  filterWoord = "";
-  opslaanNaam = toonBanner ? ("Pinkpopplanner-ingeladen-" + ddmmyyyy() + ".json") : null;
-  $empty.style.display = "none";
-  $main.style.display = "block";
-  renderHeader();
-  renderBanner();
-  renderFilter();
-  renderTabs();
-  renderTimetable();
-}
+if(!data) data=normaliseer(PROG,null);
+slaOp();
+haalWeerOp(data.dagen);
+render();
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function renderHeader() {
-  $metaIn.textContent  = "Festival programma ingeladen op " + fmtDatum(data.ingeladenOp);
-  $metaBij.textContent = "Laatst bijgewerkt op " + fmtDatum(data.bijgewerktOp);
+function render(){renderHeader();renderFilter();renderTabs();renderTimetable();}
+
+function renderHeader(){
+  document.getElementById("meta-bijgewerkt").textContent="Laatst bijgewerkt op "+fmtD(data.bijgewerktOp);
 }
 
-function renderBanner() {
-  $banner.style.display = opslaanNaam ? "flex" : "none";
-}
-
-function renderFilter() {
-  $filterBalk.innerHTML = "";
-  var lbl = document.createElement("span");
-  lbl.style.cssText = "font-size:12px; color:var(--text-sec);";
-  lbl.textContent = "Toon minimaal";
-  $filterBalk.appendChild(lbl);
-  var balk = document.createElement("div");
-  balk.className = "filter-ster-balk";
-  for (var s = 1; s <= 5; s++) {
-    (function(s) {
-      var ster = document.createElement("span");
-      ster.className = "ster" + (filterMin >= s ? " vol" : "");
-      ster.textContent = filterMin >= s ? "★" : "☆";
-      ster.addEventListener("click", function() {
-        filterMin = filterMin === s ? 0 : s;
-        renderFilter();
-        renderTimetable();
-      });
-      balk.appendChild(ster);
+function renderFilter(){
+  var fb=document.getElementById("filter-balk");fb.innerHTML="";
+  var lbl=document.createElement("span");lbl.style.cssText="font-size:12px;color:var(--text-sec);";lbl.textContent="Toon minimaal";fb.appendChild(lbl);
+  var balk=document.createElement("div");balk.className="filter-ster-balk";
+  for(var s=1;s<=5;s++){
+    (function(s){
+      var st=document.createElement("span");st.className="ster"+(filterMin>=s?" vol":"");st.textContent=filterMin>=s?"★":"☆";
+      st.addEventListener("click",function(){filterMin=filterMin===s?0:s;renderFilter();renderTimetable();});
+      balk.appendChild(st);
     })(s);
   }
-  $filterBalk.appendChild(balk);
-
-  $filterRij2.innerHTML = "";
-  var lbl2 = document.createElement("span");
-  lbl2.style.cssText = "font-size:12px; color:var(--text-sec);";
-  lbl2.textContent = "Commentaar bevat";
-  $filterRij2.appendChild(lbl2);
-  var zoek = document.createElement("input");
-  zoek.type = "text"; zoek.className = "filter-zoek";
-  zoek.placeholder = "Zoekwoord..."; zoek.value = filterWoord;
-  zoek.addEventListener("blur", function() { filterWoord = zoek.value.trim().toLowerCase(); renderTimetable(); });
-  zoek.addEventListener("keydown", function(e) { if (e.key === "Enter") zoek.blur(); });
-  $filterRij2.appendChild(zoek);
+  fb.appendChild(balk);
+  var fr=document.getElementById("filter-rij2");fr.innerHTML="";
+  var lbl2=document.createElement("span");lbl2.style.cssText="font-size:12px;color:var(--text-sec);";lbl2.textContent="Commentaar bevat";fr.appendChild(lbl2);
+  var zoek=document.createElement("input");zoek.type="text";zoek.className="filter-zoek";zoek.placeholder="Zoekwoord...";zoek.value=filterWoord;
+  zoek.addEventListener("blur",function(){filterWoord=zoek.value.trim().toLowerCase();renderTimetable();});
+  zoek.addEventListener("keydown",function(e){if(e.key==="Enter")zoek.blur();});
+  fr.appendChild(zoek);
 }
 
-function renderTabs() {
-  $tabs.innerHTML = "";
-  for (var i = 0; i < data.dagen.length; i++) {
-    (function(i) {
-      var d = data.dagen[i];
-      var btn = document.createElement("button");
-      btn.className = "tab" + (i === actieveDag ? " active" : "");
-      btn.innerHTML = d.dag + ' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
-      btn.addEventListener("click", function() { actieveDag = i; renderTabs(); renderTimetable(); });
-      $tabs.appendChild(btn);
+function renderTabs(){
+  var tabs=document.getElementById("tabs");tabs.innerHTML="";
+  for(var i=0;i<data.dagen.length;i++){
+    (function(i){
+      var d=data.dagen[i],btn=document.createElement("button");
+      btn.className="tab"+(i===actieveDag?" active":"");
+      btn.innerHTML=d.dag+' <span style="opacity:.6;font-size:11px">('+d.artiesten.length+')</span>';
+      btn.addEventListener("click",function(){actieveDag=i;renderTabs();renderTimetable();});
+      tabs.appendChild(btn);
     })(i);
   }
 }
 
-function renderTimetable() {
-  $body.innerHTML = "";
-  ["tijd","podium","beoordeling"].forEach(function(k) {
-    var ic = document.getElementById("icon-"+k);
-    if (!ic) return;
-    ic.textContent = sortKolom === k ? (sortRichting === "asc" ? "↑" : "↓") : "↕";
-    ic.style.opacity = sortKolom === k ? "1" : "0.3";
+function renderTimetable(){
+  var tbody=document.getElementById("timetable-body");tbody.innerHTML="";
+  ["tijd","podium"].forEach(function(k){
+    var ic=document.getElementById("icon-"+k);if(!ic)return;
+    ic.textContent=sortKolom===k?(sortRichting==="asc"?"↑":"↓"):"↕";
+    ic.style.opacity=sortKolom===k?"1":"0.3";
   });
-
-  var dag = data.dagen[actieveDag];
-  var indices = [];
-  for (var i = 0; i < dag.artiesten.length; i++) {
-    var a = dag.artiesten[i];
-    var heeftSter = filterMin > 0;
-    var heeftWoord = filterWoord !== "";
-    var toon;
-    if (!heeftSter && !heeftWoord) toon = true;
-    else if (heeftSter && heeftWoord) toon = (a.beoordeling||0) >= filterMin || (a.notitie||"").toLowerCase().indexOf(filterWoord) !== -1;
-    else if (heeftSter) toon = (a.beoordeling||0) >= filterMin;
-    else toon = (a.notitie||"").toLowerCase().indexOf(filterWoord) !== -1;
-    if (toon) indices.push(i);
+  var dag=data.dagen[actieveDag],indices=[];
+  for(var i=0;i<dag.artiesten.length;i++){
+    var a=dag.artiesten[i],hs=filterMin>0,hw=filterWoord!=="",toon;
+    if(!hs&&!hw) toon=true;
+    else if(hs&&hw) toon=(a.beoordeling||0)>=filterMin||(a.notitie||"").toLowerCase().indexOf(filterWoord)!==-1;
+    else if(hs) toon=(a.beoordeling||0)>=filterMin;
+    else toon=(a.notitie||"").toLowerCase().indexOf(filterWoord)!==-1;
+    if(toon) indices.push(i);
   }
-  indices.sort(function(ia, ib) {
-    var a = dag.artiesten[ia], b = dag.artiesten[ib];
-    var va, vb;
-    if (sortKolom === "tijd")        { va = a.tijd;   vb = b.tijd; }
-    else if (sortKolom === "podium") { va = a.podium; vb = b.podium; }
-    else                             { va = a.beoordeling||0; vb = b.beoordeling||0; }
-    if (va < vb) return sortRichting === "asc" ? -1 : 1;
-    if (va > vb) return sortRichting === "asc" ?  1 : -1;
+  indices.sort(function(ia,ib){
+    var a=dag.artiesten[ia],b=dag.artiesten[ib],va,vb;
+    if(sortKolom==="tijd"){va=tijdSort(a.start);vb=tijdSort(b.start);}
+    else if(sortKolom==="podium"){va=a.podium;vb=b.podium;}
+    else{va=a.beoordeling||0;vb=b.beoordeling||0;}
+    if(va<vb)return sortRichting==="asc"?-1:1;
+    if(va>vb)return sortRichting==="asc"?1:-1;
     return 0;
   });
+  for(var ii=0;ii<indices.length;ii++){
+    (function(ai){
+      var art=dag.artiesten[ai],kleur=PKL[art.podium]||"#888";
+      var row=document.createElement("div");row.className="row";
 
-  for (var ii = 0; ii < indices.length; ii++) {
-    (function(artIdx) {
-      var artiest = dag.artiesten[artIdx];
-      var kleur = PODIUM_KLEUREN[artiest.podium] || "#888";
-
-      var row = document.createElement("div"); row.className = "row";
-
-      var tijd = document.createElement("span"); tijd.className = "col-tijd tijd"; tijd.textContent = artiest.tijd;
-
-      var badge = document.createElement("span"); badge.className = "podium-badge";
-      badge.style.background = kleur+"33"; badge.style.color = kleur; badge.textContent = artiest.podium;
-
-      var podiumWrap = document.createElement("span"); podiumWrap.className = "col-podium";
-      podiumWrap.appendChild(badge);
-
-      var weerType = berekenWeer(artiest.dagSleutel, artiest.tijd);
-      if (weerType) {
-        var icoon = maakWeerIcoon(weerType);
-        var wlink = document.createElement("a");
-        wlink.href = "https://www.buienradar.nl/weer/landgraaf/nl/2751827";
-        wlink.target = "_blank"; wlink.rel = "noopener noreferrer";
-        wlink.style.cssText = "display:inline-flex;align-items:center;text-decoration:none;line-height:1;";
-        wlink.title = weerType === "zon" ? "Zonnig" : weerType === "bewolkt" ? "Bewolkt" : weerType === "licht" ? "Lichte regen" : "Flinke regen";
-        wlink.appendChild(icoon);
-        podiumWrap.appendChild(wlink);
+      // Rij 1: tijd + podium
+      var rij1=document.createElement("div");rij1.className="row-rij";
+      var tijd=document.createElement("span");tijd.className="col-tijd tijd";tijd.textContent=art.start+(art.einde?" – "+art.einde:"");
+      var badge=document.createElement("span");badge.className="podium-badge";badge.style.background=kleur+"33";badge.style.color=kleur;badge.textContent=art.podium;
+      var pw=document.createElement("span");pw.className="col-podium";pw.appendChild(badge);
+      var wt=berekenWeer(art.datum,art.start,art.einde);
+      if(wt){
+        var wl=document.createElement("a");wl.href="https://www.buienradar.nl/weer/landgraaf/nl/2751827";wl.target="_blank";wl.rel="noopener noreferrer";
+        wl.style.cssText="display:inline-flex;align-items:center;text-decoration:none;line-height:1;";wl.appendChild(maakWeerIcoon(wt));pw.appendChild(wl);
       }
+      rij1.appendChild(tijd);rij1.appendChild(pw);
 
-      var naam = document.createElement("a"); naam.className = "naam-link col-naam";
-      naam.textContent = artiest.naam;
-      naam.href = "https://open.spotify.com/search/" + encodeURIComponent(artiest.naam);
-      naam.target = "_blank"; naam.rel = "noopener noreferrer";
+      // Rij 2: artiest
+      var rij2=document.createElement("div");rij2.className="row-rij";
+      var naam=document.createElement("a");naam.className="naam-link";naam.textContent=art.naam;
+      naam.href="https://open.spotify.com/search/"+encodeURIComponent(art.naam);naam.target="_blank";naam.rel="noopener noreferrer";
+      rij2.appendChild(naam);
 
-      var sterren = document.createElement("div"); sterren.className = "sterren col-ster";
-      for (var s = 1; s <= 5; s++) {
-        (function(s) {
-          var ster = document.createElement("span");
-          ster.className = "ster" + (artiest.beoordeling >= s ? " vol" : "");
-          ster.textContent = artiest.beoordeling >= s ? "★" : "☆";
-          ster.addEventListener("click", function() {
-            dag.artiesten[artIdx].beoordeling = dag.artiesten[artIdx].beoordeling === s ? null : s;
-            data.bijgewerktOp = new Date().toISOString();
-            slaOpInStorage(); renderHeader(); renderTimetable();
-          });
-          sterren.appendChild(ster);
+      // Rij 3: sterren + notitie
+      var rij3=document.createElement("div");rij3.className="row-rij";
+      var sterren=document.createElement("div");sterren.className="sterren col-ster";
+      for(var s=1;s<=5;s++){
+        (function(s){
+          var st=document.createElement("span");st.className="ster"+(art.beoordeling>=s?" vol":"");st.textContent=art.beoordeling>=s?"★":"☆";
+          st.addEventListener("click",function(){dag.artiesten[ai].beoordeling=dag.artiesten[ai].beoordeling===s?null:s;data.bijgewerktOp=new Date().toISOString();slaOp();renderHeader();renderTimetable();});
+          sterren.appendChild(st);
         })(s);
       }
+      var nw=document.createElement("div");nw.className="col-notitie";
+      var ns=document.createElement("span");ns.className="notitie-tekst"+(art.notitie?"":" leeg");ns.textContent=art.notitie||"Notitie...";
+      var ni=document.createElement("input");ni.type="text";ni.className="notitie-input";ni.maxLength=35;ni.value=art.notitie;ni.style.display="none";
+      ns.addEventListener("click",function(){ns.style.display="none";ni.style.display="block";ni.focus();});
+      ni.addEventListener("blur",function(){dag.artiesten[ai].notitie=ni.value;data.bijgewerktOp=new Date().toISOString();slaOp();renderHeader();ns.textContent=ni.value||"Notitie...";ns.className="notitie-tekst"+(ni.value?"":" leeg");ni.style.display="none";ns.style.display="";});
+      ni.addEventListener("keydown",function(e){if(e.key==="Enter")ni.blur();});
+      nw.appendChild(ns);nw.appendChild(ni);
+      rij3.appendChild(sterren);rij3.appendChild(nw);
 
-      var notitieWrap = document.createElement("div"); notitieWrap.className = "col-notitie";
-      var notitieSpan = document.createElement("span");
-      notitieSpan.className = "notitie-tekst" + (artiest.notitie ? "" : " leeg");
-      notitieSpan.textContent = artiest.notitie || "Notitie...";
-      var notitieInput = document.createElement("input");
-      notitieInput.type = "text"; notitieInput.className = "notitie-input";
-      notitieInput.maxLength = 35; notitieInput.value = artiest.notitie;
-      notitieInput.style.display = "none";
-      notitieSpan.addEventListener("click", function() {
-        notitieSpan.style.display = "none"; notitieInput.style.display = "block"; notitieInput.focus();
-      });
-      notitieInput.addEventListener("blur", function() {
-        dag.artiesten[artIdx].notitie = notitieInput.value;
-        data.bijgewerktOp = new Date().toISOString();
-        slaOpInStorage(); renderHeader();
-        notitieSpan.textContent = notitieInput.value || "Notitie...";
-        notitieSpan.className = "notitie-tekst" + (notitieInput.value ? "" : " leeg");
-        notitieInput.style.display = "none"; notitieSpan.style.display = "";
-      });
-      notitieInput.addEventListener("keydown", function(e) { if (e.key === "Enter") notitieInput.blur(); });
-      notitieWrap.appendChild(notitieSpan); notitieWrap.appendChild(notitieInput);
-
-      row.appendChild(tijd); row.appendChild(podiumWrap); row.appendChild(naam);
-
-      var rowSub = document.createElement("div"); rowSub.className = "row-sub";
-      rowSub.appendChild(sterren); rowSub.appendChild(notitieWrap);
-      row.appendChild(rowSub);
-      $body.appendChild(row);
+      row.appendChild(rij1);row.appendChild(rij2);row.appendChild(rij3);
+      tbody.appendChild(row);
     })(indices[ii]);
   }
 }
 
 // ── Knoppen ───────────────────────────────────────────────────────────────────
-$btnBannerB.addEventListener("click", function() { slaOpInStorage(); opslaanNaam = null; renderBanner(); });
-
-$btnExport.addEventListener("click", function() {
-  downloadJson("Pinkpopplanner-backup-" + ddmmyyyy() + ".json");
-  $btnExport.textContent = "✓ Geëxporteerd!";
-  $btnExport.classList.add("saved");
-  setTimeout(function() { $btnExport.textContent = "📤 Exporteer"; $btnExport.classList.remove("saved"); }, 2000);
+document.getElementById("btn-export").addEventListener("click",function(){
+  dlJson("Pinkpopplanner-backup-"+ddmm()+".json");
+  var btn=document.getElementById("btn-export");btn.textContent="✓ Geëxporteerd!";
+  setTimeout(function(){btn.textContent="📤 Exporteer";},2000);
 });
 
-$btnDark.addEventListener("click", function() {
-  darkMode = !darkMode;
-  document.body.className = darkMode ? "dark" : "light";
-  $btnDark.textContent = darkMode ? "☀️" : "🌙";
-  localStorage.setItem(LS_DARK_KEY, darkMode);
+document.getElementById("file-import").addEventListener("change",function(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var imported=JSON.parse(ev.target.result);
+      if(!imported||!imported.dagen) throw new Error("Ongeldig bestand.");
+      data=normaliseer(PROG,imported);slaOp();render();
+      var lbl=document.getElementById("lbl-import");lbl.style.background="#27ae60";lbl.style.color="#fff";
+      setTimeout(function(){lbl.style.background="";lbl.style.color="";},2000);
+    }catch(err){alert("Importeren mislukt: "+err.message);}
+  };
+  reader.readAsText(file);e.target.value="";
 });
 
-document.querySelectorAll(".sortable").forEach(function(el) {
-  el.addEventListener("click", function() {
-    var k = el.dataset.kolom;
-    if (sortKolom === k) sortRichting = sortRichting === "asc" ? "desc" : "asc";
-    else { sortKolom = k; sortRichting = "asc"; }
+document.getElementById("btn-dark").addEventListener("click",function(){
+  darkMode=!darkMode;document.body.className=darkMode?"dark":"light";
+  this.textContent=darkMode?"☀️":"🌙";localStorage.setItem(LS_K,darkMode);
+});
+document.getElementById("btn-testweer").addEventListener("click",toggleTestWeer);
+document.querySelectorAll(".sortable").forEach(function(el){
+  el.addEventListener("click",function(){
+    var k=el.dataset.kolom;
+    if(sortKolom===k)sortRichting=sortRichting==="asc"?"desc":"asc";
+    else{sortKolom=k;sortRichting="asc";}
     renderTimetable();
   });
 });
