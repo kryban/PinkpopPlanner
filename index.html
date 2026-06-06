@@ -88,7 +88,7 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v2.0.0</div>
+  <div class="versie">v2.0.1</div>
 </div>
 <script>
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
@@ -181,9 +181,24 @@ function normaliseer(raw, bestaand) {
   var map = {};
   if (bestaand && bestaand.dagen) {
     for (var d = 0; d < bestaand.dagen.length; d++) {
-      for (var a = 0; a < bestaand.dagen[d].artiesten.length; a++) {
-        var x = bestaand.dagen[d].artiesten[a];
-        map[x.datum+"|"+x.start+"|"+x.naam] = x;
+      var dag = bestaand.dagen[d];
+      for (var a = 0; a < (dag.artiesten||[]).length; a++) {
+        var x = dag.artiesten[a];
+        // Nieuw formaat: datum|start|naam
+        if (x.datum && x.start) {
+          map[x.datum+"|"+x.start+"|"+x.naam] = x;
+        }
+        // Oud formaat: tijd als "HH:MM – HH:MM", naam via naam veld
+        if (x.tijd) {
+          var startOud = x.tijd.split("–")[0].trim().split("-")[0].trim();
+          var naamOud = x.naam || x.artiest || "";
+          // Datum afleiden uit dagSleutel
+          var datumMap = {"vrijdag":"2026-06-19","zaterdag":"2026-06-20","zondag":"2026-06-21"};
+          var datumOud = datumMap[x.dagSleutel] || "";
+          if (datumOud && startOud && naamOud) map[datumOud+"|"+startOud+"|"+naamOud] = x;
+          // Ook zonder datum als fallback: start|naam
+          map[startOud+"|"+naamOud] = x;
+        }
       }
     }
   }
@@ -194,9 +209,11 @@ function normaliseer(raw, bestaand) {
     var artiesten = [];
     for (var a = 0; a < dag.artiesten.length; a++) {
       var art = dag.artiesten[a];
-      var key = dag.datum+"|"+art.start+"|"+art.naam;
+      var key1 = dag.datum+"|"+art.start+"|"+art.naam;
+      var key2 = art.start+"|"+art.naam;
+      var bestaandArt = map[key1] || map[key2];
       var beoor = null, notitie = "";
-      if (map[key]) { beoor = map[key].beoordeling; notitie = map[key].notitie||""; }
+      if (bestaandArt) { beoor = bestaandArt.beoordeling; notitie = bestaandArt.notitie||""; }
       artiesten.push({ datum:dag.datum, dagSleutel:dag.dag.toLowerCase(), podium:art.podium, naam:art.naam, start:art.start, einde:art.einde, beoordeling:beoor, notitie:notitie });
     }
     artiesten.sort(function(a,b) { return tijdSort(a.start)-tijdSort(b.start); });
