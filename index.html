@@ -72,8 +72,7 @@
         📥 Importeer
         <input type="file" id="file-import" accept=".json" style="display:none" />
       </label>
-      <!-- TESTKNOP - verwijderen na testen -->
-      <button id="btn-testweer">🌦 Testweer</button>
+      <!-- TESTKNOP verwijderd -->
     </div>
   </div>
   <div id="filter-balk"></div>
@@ -88,7 +87,7 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v2.0.1</div>
+  <div class="versie">v2.0.2</div>
 </div>
 <script>
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
@@ -223,34 +222,17 @@ function normaliseer(raw, bestaand) {
 }
 
 // ── Weer ──────────────────────────────────────────────────────────────────────
-var weerData = {}, testWeerActief = false;
-
 function haalWeerOp(dagen) {
   var datums = [];
   for (var i=0;i<dagen.length;i++) { if(dagen[i].datum) datums.push(dagen[i].datum); }
   if (!datums.length) return;
   datums.sort();
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date="+datums[0]+"&end_date="+datums[datums.length-1])
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=50.89&longitude=6.04&hourly=precipitation,cloudcover,temperature_2m&timezone=Europe%2FAmsterdam&start_date="+datums[0]+"&end_date="+datums[datums.length-1])
     .then(function(r){return r.json();})
     .then(function(json){
-      for(var i=0;i<json.hourly.time.length;i++) weerData[json.hourly.time[i]]={precipitation:json.hourly.precipitation[i],cloudcover:json.hourly.cloudcover[i]};
+      for(var i=0;i<json.hourly.time.length;i++) weerData[json.hourly.time[i]]={precipitation:json.hourly.precipitation[i],cloudcover:json.hourly.cloudcover[i],temperature:json.hourly.temperature_2m[i]};
       if(data) renderTimetable();
     }).catch(function(){});
-}
-
-function toggleTestWeer() {
-  testWeerActief = !testWeerActief;
-  var btn = document.getElementById("btn-testweer");
-  if (testWeerActief) {
-    var types=[{precipitation:0,cloudcover:10},{precipitation:0,cloudcover:60},{precipitation:0.8,cloudcover:80},{precipitation:3.5,cloudcover:90}];
-    var dd=["2026-06-19","2026-06-20","2026-06-21"];
-    for(var d=0;d<dd.length;d++) for(var u=0;u<24;u++) weerData[dd[d]+"T"+(u<10?"0":"")+u+":00"]=types[(d*8+u)%4];
-    btn.style.background="#f5c518"; btn.style.color="#7a6000"; btn.style.border="none";
-  } else {
-    weerData={};
-    btn.style.background=""; btn.style.color=""; btn.style.border="";
-  }
-  if(data) renderTimetable();
 }
 
 function berekenWeer(datum,start,einde) {
@@ -258,38 +240,54 @@ function berekenWeer(datum,start,einde) {
   var bu=parseInt(start.split(":")[0]), eu=parseInt((einde||start).split(":")[0]);
   if(isNaN(bu)) return null;
   if(isNaN(eu)||eu<bu) eu=bu+1;
-  var tp=0,tc=0,n=0;
+  var tp=0,tc=0,tt=0,n=0;
   for(var u=bu;u<=eu;u++){
     var uu=u%24, dd=new Date(datum);
     if(u>=24) dd.setDate(dd.getDate()+1);
     var k=dd.toISOString().slice(0,10)+"T"+(uu<10?"0":"")+uu+":00";
-    if(weerData[k]!==undefined){tp+=weerData[k].precipitation;tc+=weerData[k].cloudcover;n++;}
+    if(weerData[k]!==undefined){tp+=weerData[k].precipitation;tc+=weerData[k].cloudcover;tt+=weerData[k].temperature||0;n++;}
   }
   if(!n) return null;
-  if(tp===0&&tc/n<30) return "zon";
-  if(tp===0) return "bewolkt";
-  if(tp<2) return "licht";
-  return "zwaar";
+  var gemCloud=tc/n, gemTemp=Math.round(tt/n);
+  var type;
+  if(tp===0&&gemCloud<30) type="zon";
+  else if(tp===0) type="bewolkt";
+  else if(tp<2) type="licht";
+  else type="zwaar";
+  return { type:type, temp:gemTemp };
 }
 
-function maakWeerIcoon(type) {
-  if(type==="zon"||type==="bewolkt"){var s=document.createElement("span");s.style.fontSize="16px";s.textContent=type==="zon"?"☀️":"⛅";return s;}
-  var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="display:inline-block;vertical-align:middle;";
-  if(type==="licht"){
-    svg.setAttribute("width","16");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 18 20");
-    var p=document.createElementNS("http://www.w3.org/2000/svg","path");
-    p.setAttribute("d","M9 1C9 1 2 9 2 13.5C2 17.09 5.13 20 9 20C12.87 20 16 17.09 16 13.5C16 9 9 1 9 1Z");
-    p.setAttribute("fill","#4a90e8");svg.appendChild(p);
+function maakWeerIcoon(weer) {
+  var type = weer.type, temp = weer.temp;
+  var wrap = document.createElement("span");
+  wrap.style.cssText = "display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text-sec);";
+  var icoon;
+  if(type==="zon"||type==="bewolkt"){
+    icoon=document.createElement("span");icoon.style.fontSize="16px";icoon.textContent=type==="zon"?"☀️":"⛅";
   } else {
-    svg.setAttribute("width","24");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 26 20");
-    var p1=document.createElementNS("http://www.w3.org/2000/svg","path");
-    p1.setAttribute("d","M8 1C8 1 2 8.5 2 12.5C2 15.81 4.69 18.5 8 18.5C11.31 18.5 14 15.81 14 12.5C14 8.5 8 1 8 1Z");
-    p1.setAttribute("fill","#4a90e8");p1.setAttribute("opacity","0.55");
-    var p2=document.createElementNS("http://www.w3.org/2000/svg","path");
-    p2.setAttribute("d","M18 1C18 1 12 8.5 12 12.5C12 15.81 14.69 18.5 18 18.5C21.31 18.5 24 15.81 24 12.5C24 8.5 18 1 18 1Z");
-    p2.setAttribute("fill","#4a90e8");svg.appendChild(p1);svg.appendChild(p2);
+    var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="display:inline-block;vertical-align:middle;";
+    if(type==="licht"){
+      svg.setAttribute("width","16");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 18 20");
+      var p=document.createElementNS("http://www.w3.org/2000/svg","path");
+      p.setAttribute("d","M9 1C9 1 2 9 2 13.5C2 17.09 5.13 20 9 20C12.87 20 16 17.09 16 13.5C16 9 9 1 9 1Z");
+      p.setAttribute("fill","#4a90e8");svg.appendChild(p);
+    } else {
+      svg.setAttribute("width","24");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 26 20");
+      var p1=document.createElementNS("http://www.w3.org/2000/svg","path");
+      p1.setAttribute("d","M8 1C8 1 2 8.5 2 12.5C2 15.81 4.69 18.5 8 18.5C11.31 18.5 14 15.81 14 12.5C14 8.5 8 1 8 1Z");
+      p1.setAttribute("fill","#4a90e8");p1.setAttribute("opacity","0.55");
+      var p2=document.createElementNS("http://www.w3.org/2000/svg","path");
+      p2.setAttribute("d","M18 1C18 1 12 8.5 12 12.5C12 15.81 14.69 18.5 18 18.5C21.31 18.5 24 15.81 24 12.5C24 8.5 18 1 18 1Z");
+      p2.setAttribute("fill","#4a90e8");svg.appendChild(p1);svg.appendChild(p2);
+    }
+    icoon = svg;
   }
-  return svg;
+  wrap.appendChild(icoon);
+  var tempSpan = document.createElement("span");
+  tempSpan.textContent = temp+"°";
+  tempSpan.style.cssText = "font-family:monospace;font-size:11px;color:var(--text-sec);";
+  wrap.appendChild(tempSpan);
+  return wrap;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
